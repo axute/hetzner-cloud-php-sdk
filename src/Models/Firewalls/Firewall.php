@@ -47,7 +47,6 @@ class Firewall extends Model implements Resource
      */
     public array $appliedTo;
 
-    public string $description;
 
     /**
      * Firewall constructor.
@@ -58,7 +57,6 @@ class Firewall extends Model implements Resource
      * @param array $appliedTo
      * @param array $labels
      * @param string $created
-     * @param string $description
      */
     public function __construct(
         int $id,
@@ -67,7 +65,6 @@ class Firewall extends Model implements Resource
         array $appliedTo = [],
         array $labels = [],
         string $created = '',
-        string $description = ''
     ) {
         $this->id = $id;
         $this->labels = $labels;
@@ -76,7 +73,6 @@ class Firewall extends Model implements Resource
         $this->rules = $rules;
         $this->applied_to = $appliedTo;
         $this->appliedTo = $appliedTo;
-        $this->description = $description;
         parent::__construct();
     }
 
@@ -115,7 +111,7 @@ class Firewall extends Model implements Resource
         $rules = [];
 
         foreach ($input->rules as $r) {
-            $rules[] = new FirewallRule($r->direction, $r->protocol, $r->source_ips, $r->destination_ips, (string) $r->port);
+            $rules[] = new FirewallRule($r->direction, $r->protocol, $r->source_ips, $r->destination_ips, (string) $r->port, $r->description);
         }
 
         foreach ($input->applied_to as $a) {
@@ -124,7 +120,7 @@ class Firewall extends Model implements Resource
             }
         }
 
-        return new self($input->id, $input->name, $rules, $appliedTo, get_object_vars($input->labels), $input->created, $input->description);
+        return new self($input->id, $input->name, $rules, $appliedTo, get_object_vars($input->labels), $input->created);
     }
 
     /**

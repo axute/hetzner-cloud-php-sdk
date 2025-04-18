@@ -7,52 +7,55 @@ namespace LKDev\HetznerCloud\Models\Firewalls;
  */
 class FirewallRule
 {
-    const DIRECTION_IN = 'in';
+    const string DIRECTION_IN = 'in';
 
-    const DIRECTION_OUT = 'out';
+    const string DIRECTION_OUT = 'out';
 
-    const PROTOCOL_TCP = 'tcp';
+    const string PROTOCOL_TCP = 'tcp';
 
-    const PROTOCOL_UDP = 'udp';
+    const string PROTOCOL_UDP = 'udp';
 
-    const PROTOCOL_ICMP = 'icmp';
+    const string PROTOCOL_ICMP = 'icmp';
     /**
      * @var string
      */
-    public $direction;
+    public string $direction;
     /**
      * @var array<string>
      */
-    public $sourceIPs;
+    public array $sourceIPs;
     /**
      * @var array<string>
      */
-    public $destinationIPs;
+    public array $destinationIPs;
     /**
      * @var string
      */
-    public $protocol;
+    public string $protocol;
     /**
-     * @var string
+     * @var string|null
      */
-    public $port;
+    public ?string $port;
+    public ?string $description;
 
     /**
      * FirewallRule constructor.
      *
-     * @param  string  $direction
-     * @param  string[]  $sourceIPs
-     * @param  string[]  $destinationIPs
-     * @param  string  $protocol
-     * @param  string  $port
+     * @param string $direction
+     * @param string $protocol
+     * @param string[] $sourceIPs
+     * @param string[] $destinationIPs
+     * @param string|null $port
+     * @param string|null $description
      */
-    public function __construct(string $direction, string $protocol, array $sourceIPs = [], array $destinationIPs = [], ?string $port = '')
+    public function __construct(string $direction, string $protocol, array $sourceIPs = [], array $destinationIPs = [], ?string $port = '', ?string $description = null)
     {
         $this->direction = $direction;
         $this->sourceIPs = $sourceIPs;
         $this->destinationIPs = $destinationIPs;
         $this->protocol = $protocol;
         $this->port = $port;
+        $this->description = $description;
     }
 
     /**
