@@ -79,7 +79,7 @@ class Locations extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-locations-get-1
      *
      * @param  int  $locationId
-     * @return \LKDev\HetznerCloud\Models\Locations\Location
+     * @return Location
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -99,7 +99,7 @@ class Locations extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-locations-get-1
      *
      * @param  int  $locationId
-     * @return \LKDev\HetznerCloud\Models\Locations\Location
+     * @return Location
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -127,7 +127,7 @@ class Locations extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

@@ -140,12 +140,12 @@ class Action extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Actions\Action|static
+     * @return Action|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->id, $input->command, $input->progress, $input->status, $input->started, $input->finished, $input->resources, $input->error ?? null);

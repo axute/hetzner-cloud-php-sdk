@@ -52,7 +52,7 @@ class Firewalls extends Model implements Resources
      * @see https://docs.hetzner.cloud/#firewalls-get-a-firewall
      *
      * @param  int  $firewallId
-     * @return \LKDev\HetznerCloud\Models\Firewalls\Firewall|null
+     * @return Firewall|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -80,7 +80,7 @@ class Firewalls extends Model implements Resources
      * @see https://docs.hetzner.cloud/#firewalls-get-all-firewalls
      *
      * @param  string  $name
-     * @return \LKDev\HetznerCloud\Models\Firewalls\Firewall
+     * @return Firewall
      *
      * @throws \LKDev\HetznerCloud\APIException
      */

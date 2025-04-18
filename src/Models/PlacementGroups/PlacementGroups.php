@@ -156,7 +156,7 @@ class PlacementGroups extends Model implements Resources
      * @param  $input
      * @return static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

@@ -78,7 +78,7 @@ class Server extends Model implements Resource
     public $serverType;
 
     /**
-     * @var \LKDev\HetznerCloud\Models\Datacenters\Datacenter
+     * @var Datacenter
      */
     public $datacenter;
 
@@ -153,7 +153,7 @@ class Server extends Model implements Resource
     public $includedTraffic;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Protection
+     * @var array|Protection
      */
     public $protection;
 
@@ -190,7 +190,7 @@ class Server extends Model implements Resource
 
     /**
      * @param  $data
-     * @return \LKDev\HetznerCloud\Models\Servers\Server
+     * @return Server
      */
     public function setAdditionalData($data)
     {
@@ -474,7 +474,7 @@ class Server extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#server-actions-rebuild-a-server-from-an-image
      *
-     * @param  \LKDev\HetznerCloud\Models\Images\Image  $image
+     * @param Image $image
      * @return APIResponse|null
      *
      * @throws \LKDev\HetznerCloud\APIException
@@ -502,7 +502,7 @@ class Server extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#server-actions-change-the-type-of-a-server
      *
-     * @param  \LKDev\HetznerCloud\Models\Servers\Types\ServerType  $serverType
+     * @param ServerType $serverType
      * @param  bool  $upgradeDisk
      * @return APIResponse|null
      *
@@ -572,7 +572,7 @@ class Server extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#server-actions-attach-an-iso-to-a-server
      *
-     * @param  \LKDev\HetznerCloud\Models\ISOs\ISO  $iso
+     * @param ISO $iso
      * @return APIResponse|null
      *
      * @throws \LKDev\HetznerCloud\APIException
@@ -858,9 +858,9 @@ class Server extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Servers\Server|static |null
+     * @return Server|static |null
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
             return null;

@@ -56,12 +56,12 @@ class Pagination extends Model
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Pagination|null|static
+     * @return Pagination|null|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->page, $input->per_page, $input->previous_page, $input->next_page, $input->last_page, $input->total_entries);

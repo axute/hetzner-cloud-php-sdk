@@ -29,7 +29,7 @@ class Images extends Model implements Resources
      * @param  RequestOpts|null  $requestOpts
      * @return array
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -75,9 +75,9 @@ class Images extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-images-get-1
      *
      * @param  int  $imageId
-     * @return \LKDev\HetznerCloud\Models\Images\Image
+     * @return Image
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
     public function getById(int $imageId): ?Image
     {
@@ -124,7 +124,7 @@ class Images extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

@@ -85,7 +85,7 @@ class Volumes extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-volumes-get
      *
      * @param  string  $volumeName
-     * @return \LKDev\HetznerCloud\Models\Volumes\Volume|null
+     * @return Volume|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -187,7 +187,7 @@ class Volumes extends Model implements Resources
      * @param  $input
      * @return static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

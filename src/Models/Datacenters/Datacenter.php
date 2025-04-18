@@ -32,7 +32,7 @@ class Datacenter extends Model implements Resource
     public $description;
 
     /**
-     * @var \LKDev\HetznerCloud\Models\Locations\Location
+     * @var Location
      */
     public $location;
 
@@ -53,7 +53,7 @@ class Datacenter extends Model implements Resource
      * @param  int  $id
      * @param  string  $name
      * @param  string  $description
-     * @param  \LKDev\HetznerCloud\Models\Locations\Location  $location
+     * @param Location $location
      * @param  array  $server_types
      */
     public function __construct(
@@ -74,12 +74,12 @@ class Datacenter extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Datacenters\Datacenter|static
+     * @return Datacenter|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->id, $input->name, $input->description, Location::parse($input->location), $input->server_types);

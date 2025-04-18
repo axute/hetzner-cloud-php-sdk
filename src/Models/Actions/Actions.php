@@ -55,7 +55,7 @@ class Actions extends Model implements Resources
 
     /**
      * @param  $actionId
-     * @return \LKDev\HetznerCloud\Models\Actions\Action|null
+     * @return Action|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -92,7 +92,7 @@ class Actions extends Model implements Resources
      * @param  Server  $server
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

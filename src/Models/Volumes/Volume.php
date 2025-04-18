@@ -239,10 +239,10 @@ class Volume extends Model implements Resource
      * @param  $input
      * @return Volume|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return (new self($input->id))->setAdditionalData($input);

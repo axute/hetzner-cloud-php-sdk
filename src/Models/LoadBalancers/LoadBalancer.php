@@ -130,12 +130,12 @@ class LoadBalancer extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancer|static
+     * @return LoadBalancer|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->id, $input->name, LoadBalancerAlgorithm::parse($input->algorithm), $input->created, $input->included_traffic, get_object_vars($input->labels), LoadBalancerType::parse($input->load_balancer_type), Location::parse($input->location), $input->private_net, Protection::parse($input->protection), $input->public_net, $input->services, $input->targets, $input->ingoing_traffic, $input->outgoing_traffic);

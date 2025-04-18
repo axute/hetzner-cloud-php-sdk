@@ -35,7 +35,7 @@ class Certificates extends Model implements Resources
      * @param  string  $certificate
      * @param  string  $privateKey
      * @param  array  $labels
-     * @return \LKDev\HetznerCloud\Models\Certificates\Certificate
+     * @return Certificate
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -127,7 +127,7 @@ class Certificates extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }
@@ -138,7 +138,7 @@ class Certificates extends Model implements Resources
      * @see https://docs.hetzner.cloud/#certificates-get-a-certificate
      *
      * @param  int  $id
-     * @return \LKDev\HetznerCloud\Models\Certificates\Certificate
+     * @return Certificate
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -158,7 +158,7 @@ class Certificates extends Model implements Resources
      * @see https://docs.hetzner.cloud/#certificates-get-a-certificate
      *
      * @param  string  $name
-     * @return \LKDev\HetznerCloud\Models\Certificates\Certificate
+     * @return Certificate
      *
      * @throws \LKDev\HetznerCloud\APIException
      */

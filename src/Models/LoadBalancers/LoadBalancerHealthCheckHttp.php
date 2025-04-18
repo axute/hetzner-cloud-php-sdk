@@ -50,12 +50,12 @@ class LoadBalancerHealthCheckHttp extends Model
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancerHealthCheckHttp|null|static
+     * @return LoadBalancerHealthCheckHttp|null|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->domain, $input->path, $input->response, $input->status_codes, $input->tls);

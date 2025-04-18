@@ -38,7 +38,7 @@ class Route extends Model
      * @param  Client|null  $client
      * @return array|Model
      */
-    public static function parse($input, ?Client $client = null)
+    public static function parse($input, ?Client $client = null): null|static
     {
         return collect($input)->map(function ($route) use ($client) {
             return new self($route->destination, $route->gateway, $client);

@@ -67,7 +67,7 @@ class ServerTypes extends Model implements Resources
 
     /**
      * @param  int  $serverTypeId
-     * @return \LKDev\HetznerCloud\Models\Servers\Types\ServerType
+     * @return ServerType
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -85,7 +85,7 @@ class ServerTypes extends Model implements Resources
      * Returns a specific server type object by its name.
      *
      * @param  int  $serverTypeId
-     * @return \LKDev\HetznerCloud\Models\Servers\Types\ServerType
+     * @return ServerType
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -113,7 +113,7 @@ class ServerTypes extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

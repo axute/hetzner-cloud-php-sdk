@@ -50,7 +50,7 @@ class LoadBalancerType extends Model implements Resource
     public $max_targets;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Prices\Prices
+     * @var array|Prices
      */
     public $prices;
 
@@ -63,7 +63,7 @@ class LoadBalancerType extends Model implements Resource
      * @param  int  $max_connections
      * @param  int  $max_services
      * @param  int  $max_targets
-     * @param  array|\LKDev\HetznerCloud\Models\Prices\Prices  $prices
+     * @param  array|Prices $prices
      */
     public function __construct(int $id, string $name, ?string $deprecated, string $description, int $max_assigned_certificates, int $max_connections, int $max_services, int $max_targets, $prices)
     {
@@ -81,12 +81,12 @@ class LoadBalancerType extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\LoadBalancerTypes\LoadBalancerType|static
+     * @return LoadBalancerType|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->id, $input->name, $input->deprecated, $input->description, $input->max_assigned_certificates, $input->max_connections, $input->max_services, $input->max_targets, Prices::parse($input->prices));

@@ -65,11 +65,11 @@ class FloatingIp extends Model implements Resource
     public $dnsPtr;
 
     /**
-     * @var \LKDev\HetznerCloud\Models\Locations\Location
+     * @var Location
      */
     public $home_location;
     /**
-     * @var \LKDev\HetznerCloud\Models\Locations\Location
+     * @var Location
      *
      * @deprecated Use $home_location instead
      */
@@ -81,7 +81,7 @@ class FloatingIp extends Model implements Resource
     public $blocked;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Protection
+     * @var array|Protection
      */
     public $protection;
 
@@ -99,7 +99,7 @@ class FloatingIp extends Model implements Resource
      * @param  string  $type
      * @param  int  $server
      * @param  array  $dnsPtr
-     * @param  \LKDev\HetznerCloud\Models\Locations\Location  $homeLocation
+     * @param Location $homeLocation
      * @param  bool  $blocked
      * @param  Protection  $protection
      * @param  array  $labels
@@ -298,9 +298,9 @@ class FloatingIp extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\FloatingIps\FloatingIp|static|null
+     * @return Model|null
      */
-    public static function parse($input): ?self
+    public static function parse($input): ?static
     {
         if ($input == null) {
             return null;

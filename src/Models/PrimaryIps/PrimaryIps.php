@@ -73,7 +73,7 @@ class PrimaryIps extends Model implements Resources
      * @see https://docs.hetzner.cloud/#primary-ips-get-a-primary-ip
      *
      * @param  int  $id
-     * @return \LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIp|null
+     * @return PrimaryIp|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -93,7 +93,7 @@ class PrimaryIps extends Model implements Resources
      * @see https://docs.hetzner.cloud/#primary-ips-get-a-primary-ip
      *
      * @param  string  $name
-     * @return \LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIp
+     * @return PrimaryIp
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -113,9 +113,9 @@ class PrimaryIps extends Model implements Resources
      * @param  string  $name
      * @param  string  $assigneeType
      * @param  int|null  $assigneeId
-     * @param  \LKDev\HetznerCloud\Models\Datacenters\Datacenter|null  $datacenter
+     * @param Datacenter|null  $datacenter
      * @param  array  $labels
-     * @return \LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIp|null
+     * @return PrimaryIp|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -170,7 +170,7 @@ class PrimaryIps extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

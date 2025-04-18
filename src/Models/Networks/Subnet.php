@@ -52,7 +52,7 @@ class Subnet extends Model
      * @param  Client|null  $client
      * @return array|Model
      */
-    public static function parse($input, ?Client $client = null)
+    public static function parse($input, ?Client $client = null): null|static
     {
         return collect($input)->map(function ($subnet) use ($client) {
             return new self($subnet->type, $subnet->ip_range, $subnet->network_zone, $subnet->gateway, $client);

@@ -83,7 +83,7 @@ class Datacenters extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-datacenters-get-1
      *
      * @param  int  $datacenterId
-     * @return \LKDev\HetznerCloud\Models\Datacenters\Datacenter|null
+     * @return Datacenter|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -103,7 +103,7 @@ class Datacenters extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-datacenters-get-1
      *
      * @param  int  $datacenterId
-     * @return \LKDev\HetznerCloud\Models\Datacenters\Datacenter
+     * @return Datacenter
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -131,7 +131,7 @@ class Datacenters extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

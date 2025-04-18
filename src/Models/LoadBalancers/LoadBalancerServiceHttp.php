@@ -50,12 +50,12 @@ class LoadBalancerServiceHttp extends Model
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancerServiceHttp|null|static
+     * @return LoadBalancerServiceHttp|null|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->certificates, $input->cookie_lifetime, $input->cookie_name, $input->redirect_http, $input->sticky_essions);

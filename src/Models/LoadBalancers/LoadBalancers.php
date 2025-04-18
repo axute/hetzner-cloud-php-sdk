@@ -72,7 +72,7 @@ class LoadBalancers extends Model implements Resources
      * @see https://docs.hetzner.cloud/#load-balancers-get-a-load-balancer
      *
      * @param  int  $id
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancer
+     * @return LoadBalancer
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -92,7 +92,7 @@ class LoadBalancers extends Model implements Resources
      * @see https://docs.hetzner.cloud/#load-balancers-get-a-load-balancer
      *
      * @param  string  $name
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancer
+     * @return LoadBalancer
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -120,7 +120,7 @@ class LoadBalancers extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

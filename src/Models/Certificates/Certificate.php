@@ -94,7 +94,7 @@ class Certificate extends Model implements Resource
      * @see https://docs.hetzner.cloud/#resources-certificates-put
      *
      * @param  array  $data
-     * @return \LKDev\HetznerCloud\Models\Certificates\Certificate|null
+     * @return Certificate|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -132,9 +132,9 @@ class Certificate extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Certificates\Certificate|static
+     * @return Certificate|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return new self($input->id, $input->name, $input->certificate, $input->created, $input->not_valid_before, $input->not_valid_after, $input->domain_names, $input->fingerprint, $input->used_by, $input->labels);
     }

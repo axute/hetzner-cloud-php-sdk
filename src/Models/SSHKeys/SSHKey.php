@@ -65,7 +65,7 @@ class SSHKey extends Model implements Resource
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-put
      *
      * @param  array  $data
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey|null
+     * @return SSHKey|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -88,7 +88,7 @@ class SSHKey extends Model implements Resource
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-put
      *
      * @param  string  $newName
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey|null
+     * @return SSHKey|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      *
@@ -120,9 +120,9 @@ class SSHKey extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey|static
+     * @return SSHKey|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return new self($input->id, $input->name, $input->fingerprint, $input->public_key, get_object_vars($input->labels));
     }

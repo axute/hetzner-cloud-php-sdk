@@ -38,12 +38,12 @@ class Protection extends Model
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Protection|null|static
+     * @return Protection|null|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->delete, property_exists($input, 'rebuild') ? $input->rebuild : null);

@@ -34,7 +34,7 @@ class SSHKeys extends Model implements Resources
      * @param  string  $name
      * @param  string  $publicKey
      * @param  array  $labels
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey
+     * @return SSHKey
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -124,7 +124,7 @@ class SSHKeys extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }
@@ -135,7 +135,7 @@ class SSHKeys extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get-1
      *
      * @param  int  $sshKeyId
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey
+     * @return SSHKey
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -155,7 +155,7 @@ class SSHKeys extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get-1
      *
      * @param  int  $sshKeyId
-     * @return \LKDev\HetznerCloud\Models\SSHKeys\SSHKey
+     * @return SSHKey
      *
      * @throws \LKDev\HetznerCloud\APIException
      */

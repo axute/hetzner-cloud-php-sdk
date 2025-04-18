@@ -81,7 +81,7 @@ class FloatingIps extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get-1
      *
      * @param  int  $locationId
-     * @return \LKDev\HetznerCloud\Models\FloatingIps\FloatingIp|null
+     * @return FloatingIp|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -101,7 +101,7 @@ class FloatingIps extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get-1
      *
      * @param  string  $name
-     * @return \LKDev\HetznerCloud\Models\FloatingIps\FloatingIp
+     * @return FloatingIp
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -119,11 +119,11 @@ class FloatingIps extends Model implements Resources
      *
      * @param  string  $type
      * @param  string|null  $description
-     * @param  \LKDev\HetznerCloud\Models\Locations\Location|null  $location
-     * @param  \LKDev\HetznerCloud\Models\Servers\Server|null  $server
+     * @param Location|null  $location
+     * @param Server|null  $server
      * @param  string|null  $name
      * @param  array  $labels
-     * @return \LKDev\HetznerCloud\Models\FloatingIps\FloatingIp|null
+     * @return FloatingIp|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -180,7 +180,7 @@ class FloatingIps extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

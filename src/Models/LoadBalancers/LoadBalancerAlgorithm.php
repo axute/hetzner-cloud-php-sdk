@@ -22,12 +22,12 @@ class LoadBalancerAlgorithm extends Model
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancerAlgorithm|null|static
+     * @return LoadBalancerAlgorithm|null|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
 
         return new self($input->type);

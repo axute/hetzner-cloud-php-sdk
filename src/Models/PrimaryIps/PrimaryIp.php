@@ -49,7 +49,7 @@ class PrimaryIp extends Model implements Resource
     public $blocked;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Protection
+     * @var array|Protection
      */
     public $protection;
 
@@ -59,7 +59,7 @@ class PrimaryIp extends Model implements Resource
     public $labels;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Datacenters\Datacenter
+     * @var array|Datacenter
      */
     public $datacenter;
 
@@ -88,7 +88,7 @@ class PrimaryIp extends Model implements Resource
      * @param  bool  $blocked
      * @param  array|Protection  $protection
      * @param  array  $labels
-     * @param  array|\LKDev\HetznerCloud\Models\Datacenters\Datacenter  $datacenter
+     * @param  array|Datacenter $datacenter
      * @param  string  $assignee_type
      * @param  int|null  $assignee_id
      * @param  bool  $auto_delete
@@ -155,9 +155,9 @@ class PrimaryIp extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIp|static|null
+     * @return Model|null
      */
-    public static function parse($input): ?self
+    public static function parse($input): ?static
     {
         if ($input == null) {
             return null;

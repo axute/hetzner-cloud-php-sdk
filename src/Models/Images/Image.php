@@ -130,7 +130,7 @@ class Image extends Model implements Resource
     public $rapidDeploy;
 
     /**
-     * @var array|\LKDev\HetznerCloud\Models\Protection
+     * @var array|Protection
      */
     public $protection;
 
@@ -214,7 +214,7 @@ class Image extends Model implements Resource
      * @see https://docs.hetzner.cloud/#resources-images-put
      *
      * @param  array  $data
-     * @return \LKDev\HetznerCloud\Models\Images\Image
+     * @return Image
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -277,9 +277,9 @@ class Image extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Images\Image|static
+     * @return Model|null
      */
-    public static function parse($input): ?Image
+    public static function parse($input): ?static
     {
         if ($input == null) {
             return null;

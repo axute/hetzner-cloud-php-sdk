@@ -79,7 +79,7 @@ class ISOs extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-iso-get-1
      *
      * @param  int  $isoId
-     * @return \LKDev\HetznerCloud\Models\ISOs\ISO|null
+     * @return ISO|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -99,7 +99,7 @@ class ISOs extends Model implements Resources
      * @see https://docs.hetzner.cloud/#resources-iso-get-1
      *
      * @param  int  $isoId
-     * @return \LKDev\HetznerCloud\Models\ISOs\ISO
+     * @return ISO
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -127,7 +127,7 @@ class ISOs extends Model implements Resources
      * @param  $input
      * @return $this|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

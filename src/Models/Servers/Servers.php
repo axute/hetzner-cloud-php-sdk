@@ -83,7 +83,7 @@ class Servers extends Model
      * @see https://docs.hetzner.cloud/#resources-servers-get
      *
      * @param  string  $serverName
-     * @return \LKDev\HetznerCloud\Models\Servers\Server|null
+     * @return Server|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -100,7 +100,7 @@ class Servers extends Model
      * @see https://docs.hetzner.cloud/#resources-servers-get
      *
      * @param  int  $serverId
-     * @return \LKDev\HetznerCloud\Models\Servers\Server|null
+     * @return Server|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -120,7 +120,7 @@ class Servers extends Model
      * @see https://docs.hetzner.cloud/#servers-delete-a-server
      *
      * @param  int  $serverId
-     * @return \LKDev\HetznerCloud\Models\Actions\Action|null
+     * @return Action|null
      *
      * @throws \LKDev\HetznerCloud\APIException
      */
@@ -142,10 +142,10 @@ class Servers extends Model
      * @see https://docs.hetzner.cloud/#resources-servers-post
      *
      * @param  string  $name
-     * @param  \LKDev\HetznerCloud\Models\Servers\Types\ServerType  $serverType
-     * @param  \LKDev\HetznerCloud\Models\Images\Image  $image
-     * @param  \LKDev\HetznerCloud\Models\Locations\Location  $location
-     * @param  \LKDev\HetznerCloud\Models\Datacenters\Datacenter  $datacenter
+     * @param ServerType $serverType
+     * @param Image $image
+     * @param Location $location
+     * @param Datacenter $datacenter
      * @param  array  $ssh_keys
      * @param  bool  $startAfterCreate
      * @param  string  $user_data
@@ -178,7 +178,7 @@ class Servers extends Model
         $parameters = [
             'name' => $name,
             'server_type' => $serverType->id,
-            'datacenter' => $datacenter == null ? null : $datacenter->id,
+            'datacenter' => $datacenter?->id,
             'image' => $image->id,
             'start_after_create' => $startAfterCreate,
             'user_data' => $user_data,
@@ -256,7 +256,7 @@ class Servers extends Model
         $parameters = [
             'name' => $name,
             'server_type' => $serverType->id,
-            'location' => $location == null ? null : $location->id,
+            'location' => $location?->id,
             'image' => $image->id,
             'start_after_create' => $startAfterCreate,
             'user_data' => $user_data,
@@ -317,7 +317,7 @@ class Servers extends Model
      * @param  $input
      * @return static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self())->setAdditionalData($input);
     }

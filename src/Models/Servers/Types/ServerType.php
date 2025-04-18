@@ -91,7 +91,7 @@ class ServerType extends Model
      * @param  $input
      * @return self
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         return (new self($input->id))->setAdditionalData($input);
     }

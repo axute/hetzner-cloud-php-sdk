@@ -97,12 +97,12 @@ class Location extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Locations\Location|static
+     * @return Location|static
      */
-    public static function parse($input)
+    public static function parse($input): null|static
     {
         if ($input == null) {
-            return;
+            return null;
         }
         $networkZone = property_exists($input, 'network_zone') ? $input->network_zone : null;
 
