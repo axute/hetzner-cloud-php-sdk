@@ -9,53 +9,24 @@
 
 namespace LKDev\HetznerCloud;
 
-/**
- * Class RequestOpts.
- */
+use InvalidArgumentException;
+
 class RequestOpts
 {
-    /**
-     * @var int
-     */
-    public $per_page;
-
-    /**
-     * @var int
-     */
-    public $page;
-
-    /**
-     * @var string
-     */
-    public $label_selector;
-
-    /**
-     * RequestOpts constructor.
-     *
-     * @param  $perPage
-     * @param  $page
-     * @param  $labelSelector
-     */
-    public function __construct(?int $perPage = null, ?int $page = null, ?string $labelSelector = null)
+    public function __construct(public ?int $per_page = null, public ?int $page = null, public ?string $label_selector = null)
     {
-        if ($perPage > HetznerAPIClient::MAX_ENTITIES_PER_PAGE) {
-            throw new \InvalidArgumentException('perPage can not be larger than '.HetznerAPIClient::MAX_ENTITIES_PER_PAGE);
+        if ($this->per_page > HetznerAPIClient::MAX_ENTITIES_PER_PAGE) {
+            throw new InvalidArgumentException('perPage can not be larger than ' . HetznerAPIClient::MAX_ENTITIES_PER_PAGE);
         }
-        $this->per_page = $perPage;
-        $this->page = $page;
-        $this->label_selector = $labelSelector;
     }
 
-    /**
-     * @return string
-     */
-    public function buildQuery()
+    public function buildQuery(): string
     {
         $values = collect(get_object_vars($this))
             ->filter(function ($var) {
                 return $var != null;
             })->toArray();
 
-        return count($values) == 0 ? '' : ('?'.http_build_query($values));
+        return count($values) == 0 ? '' : ('?' . http_build_query($values));
     }
 }

@@ -1,14 +1,9 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: lukaskammerling
- * Date: 28.01.18
- * Time: 21:00.
- */
-
 namespace LKDev\HetznerCloud\Models\Certificates;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -16,48 +11,39 @@ use LKDev\HetznerCloud\Models\Meta;
 use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\RequestOpts;
 use LKDev\HetznerCloud\Traits\GetFunctionTrait;
+use stdClass;
 
 class Certificates extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $certificates;
+    protected array $certificates;
 
     /**
      * Creates a new SSH Key with the given name and certificate.
-     *
      * @see https://docs.hetzner.cloud/#certificates-create-a-certificate
-     *
-     * @param  string  $name
-     * @param  string  $certificate
-     * @param  string  $privateKey
-     * @param  array  $labels
-     * @return Certificate
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function create(
         string $name,
         string $certificate,
         string $privateKey,
-        array $labels = []
-    ): ?Certificate {
+        array  $labels = []
+    ): ?Certificate
+    {
         $parameters = [
-            'name' => $name,
+            'name'        => $name,
             'certificate' => $certificate,
             'private_key' => $privateKey,
         ];
-        if (! empty($labels)) {
+        if (!empty($labels)) {
             $parameters['labels'] = $labels;
         }
         $response = $this->httpClient->post('certificates', [
             'json' => $parameters,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            return Certificate::parse(json_decode((string) $response->getBody())->certificate);
+        if (!HetznerAPIClient::hasError($response)) {
+            return Certificate::parse(json_decode((string)$response->getBody())->certificate);
         }
 
         return null;
@@ -65,13 +51,8 @@ class Certificates extends Model implements Resources
 
     /**
      * Returns all certificate objects.
-     *
      * @see https://docs.hetzner.cloud/#certificates-get-all-certificates
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -84,25 +65,20 @@ class Certificates extends Model implements Resources
 
     /**
      * Returns all certificate objects.
-     *
      * @see https://docs.hetzner.cloud/#certificates-get-all-certificates
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return APIResponse
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new RequestOpts();
         }
-        $response = $this->httpClient->get('certificates'.$requestOpts->buildQuery());
-        if (! HetznerAPIClient::hasError($response)) {
-            $resp = json_decode((string) $response->getBody());
+        $response = $this->httpClient->get('certificates' . $requestOpts->buildQuery());
+        if (!HetznerAPIClient::hasError($response)) {
+            $resp = json_decode((string)$response->getBody());
 
             return APIResponse::create([
-                'meta' => Meta::parse($resp->meta),
+                'meta'                    => Meta::parse($resp->meta),
                 $this->_getKeys()['many'] => self::parse($resp->{$this->_getKeys()['many']})->{$this->_getKeys()['many']},
             ], $response->getHeaders());
         }
@@ -110,43 +86,30 @@ class Certificates extends Model implements Resources
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
-        $this->certificates = collect($input)->map(function ($certificate, $key) {
+        $this->certificates = collect($input)->map(function ($certificate) {
             return Certificate::parse($certificate);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse(stdClass|array|null $input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
     /**
      * Returns a specific certificate object.
-     *
      * @see https://docs.hetzner.cloud/#certificates-get-a-certificate
-     *
-     * @param  int  $id
-     * @return Certificate
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function getById(int $id)
+    public function getById(int $id): Certificate|null
     {
-        $response = $this->httpClient->get('certificates/'.$id);
-        if (! HetznerAPIClient::hasError($response)) {
-            return Certificate::parse(json_decode((string) $response->getBody())->{$this->_getKeys()['one']});
+        $response = $this->httpClient->get('certificates/' . $id);
+        if (!HetznerAPIClient::hasError($response)) {
+            return Certificate::parse(json_decode((string)$response->getBody())->{$this->_getKeys()['one']});
         }
 
         return null;
@@ -154,26 +117,19 @@ class Certificates extends Model implements Resources
 
     /**
      * Returns a specific certificate object.
-     *
      * @see https://docs.hetzner.cloud/#certificates-get-a-certificate
-     *
-     * @param  string  $name
-     * @return Certificate
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?Certificate
     {
         $certificates = $this->list(new CertificateRequestOpts($name));
-
         return (count($certificates->{$this->_getKeys()['many']}) > 0) ? $certificates->{$this->_getKeys()['many']}[0] : null;
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
-        return ['one' => 'certificate', 'many' => 'certificates'];
+        return ['one'  => 'certificate',
+                'many' => 'certificates'
+        ];
     }
 }

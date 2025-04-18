@@ -9,10 +9,12 @@
 
 namespace LKDev\Tests\Unit\Models\FloatingIPs;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\FloatingIps\FloatingIp;
 use LKDev\HetznerCloud\Models\FloatingIps\FloatingIps;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 use LKDev\Tests\TestCase;
 
 /**
@@ -34,7 +36,7 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
     public function testChangeProtection()
     {
@@ -48,7 +50,7 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
     public function testDelete()
     {
@@ -57,25 +59,27 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testChangeDescription()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
-        $this->assertEquals($this->floatingIp->id, 4711);
-        $this->assertEquals($this->floatingIp->description, 'Web Frontend');
+        $this->assertEquals(4711, $this->floatingIp->id);
+        $this->assertEquals('Web Frontend', $this->floatingIp->description);
+        /** @noinspection PhpUnusedLocalVariableInspection */
         $result = $this->floatingIp->update(['description' => 'New description']);
         $this->assertLastRequestEquals('PUT', '/floating_ips/4711');
         $this->assertLastRequestBodyParametersEqual(['description' => 'New description']);
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testAssign()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP_action_assign_floating_ip.json')));
-        $apiResponse = $this->floatingIp->assignTo(new Server(42));
+        $apiResponse = $this->floatingIp->assignTo(new ServerReference(id: 42));
         $this->assertEquals('assign_floating_ip', $apiResponse->action->command);
         $this->assertEquals(42, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
@@ -86,7 +90,8 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testUnassign()
     {
@@ -102,7 +107,8 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeReverseDNS()
     {
@@ -116,12 +122,13 @@ class FloatingIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testChangeReverseDNSSetToDefault()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP_action_change_dns_ptr.json')));
         $apiResponse = $this->floatingIp->changeReverseDNS('1.2.3.4');
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         $this->assertEquals('change_dns_ptr', $apiResponse->action->command);
         $this->assertEquals($this->floatingIp->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('floating_ip', $apiResponse->action->resources[0]->type);

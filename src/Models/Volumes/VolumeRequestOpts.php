@@ -13,25 +13,10 @@ use LKDev\HetznerCloud\RequestOpts;
 
 class VolumeRequestOpts extends RequestOpts
 {
-    /**
-     * @var string
-     */
-    public $name;
+    public ?string $name;
 
-    /**
-     * @var string
-     */
-    public $status;
+    public ?string $status;
 
-    /**
-     * RequestOpts constructor.
-     *
-     * @param  $name
-     * @param  $status
-     * @param  $perPage
-     * @param  $page
-     * @param  $labelSelector
-     */
     public function __construct(?string $name = null, ?string $status = null, ?int $perPage = null, ?int $page = null, ?string $labelSelector = null)
     {
         parent::__construct($perPage, $page, $labelSelector);

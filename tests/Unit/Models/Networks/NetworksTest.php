@@ -2,14 +2,16 @@
 
 namespace LKDev\Tests\Unit\Models\Networks;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\Models\Networks\Network;
 use LKDev\HetznerCloud\Models\Networks\Networks;
 use LKDev\HetznerCloud\Models\Networks\Route;
 use LKDev\HetznerCloud\Models\Networks\Subnet;
 use LKDev\HetznerCloud\Models\Protection;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 use LKDev\Tests\TestCase;
 
 /**
@@ -17,10 +19,7 @@ use LKDev\Tests\TestCase;
  */
 class NetworksTest extends TestCase
 {
-    /**
-     * @var Networks
-     */
-    protected $networks;
+    protected Networks $networks;
 
     public function setUp(): void
     {
@@ -29,7 +28,7 @@ class NetworksTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testAll()
     {
@@ -41,18 +40,19 @@ class NetworksTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testList()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/networks.json')));
+        /** @noinspection PhpUndefinedFieldInspection */
         $networks = $this->networks->list()->networks;
         $this->assertCount(1, $networks);
         $this->assertLastRequestEquals('GET', '/networks');
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testGetByName()
     {
@@ -60,7 +60,7 @@ class NetworksTest extends TestCase
         $network = $this->networks->getByName('mynet');
         $this->assertEquals(4711, $network->id);
         $this->assertEquals('mynet', $network->name);
-        $this->assertEquals('10.0.0.0/16', $network->ipRange);
+        $this->assertEquals('10.0.0.0/16', $network->ip_range);
 
         $this->assertCount(1, $network->subnets);
         $this->assertInstanceOf(Subnet::class, $network->subnets[0]);
@@ -68,7 +68,7 @@ class NetworksTest extends TestCase
         $this->assertInstanceOf(Route::class, $network->routes[0]);
 
         $this->assertCount(1, $network->servers);
-        $this->assertInstanceOf(Server::class, $network->servers[0]);
+        $this->assertInstanceOf(ServerReference::class, $network->servers[0]);
 
         $this->assertInstanceOf(Protection::class, $network->protection);
 
@@ -78,7 +78,7 @@ class NetworksTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testGet()
     {
@@ -86,7 +86,7 @@ class NetworksTest extends TestCase
         $network = $this->networks->get(4711);
         $this->assertEquals(4711, $network->id);
         $this->assertEquals('mynet', $network->name);
-        $this->assertEquals('10.0.0.0/16', $network->ipRange);
+        $this->assertEquals('10.0.0.0/16', $network->ip_range);
 
         $this->assertCount(1, $network->subnets);
         $this->assertInstanceOf(Subnet::class, $network->subnets[0]);
@@ -94,7 +94,7 @@ class NetworksTest extends TestCase
         $this->assertInstanceOf(Route::class, $network->routes[0]);
 
         $this->assertCount(1, $network->servers);
-        $this->assertInstanceOf(Server::class, $network->servers[0]);
+        $this->assertInstanceOf(ServerReference::class, $network->servers[0]);
 
         $this->assertInstanceOf(Protection::class, $network->protection);
 
@@ -103,6 +103,10 @@ class NetworksTest extends TestCase
         $this->assertLastRequestEquals('GET', '/networks/4711');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testBasicCreate()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/network.json')));
@@ -114,6 +118,10 @@ class NetworksTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['name' => 'mynet', 'ip_range' => '10.0.0.0/16']);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testAdvancedCreate()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/network.json')));

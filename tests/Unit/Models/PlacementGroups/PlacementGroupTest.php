@@ -1,19 +1,22 @@
 <?php
 
-namespace LKDev\Tests\Unit\Models\PlacmentGroups;
+namespace LKDev\Tests\Unit\Models\PlacementGroups;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\PlacementGroups\PlacementGroup;
 use LKDev\HetznerCloud\Models\PlacementGroups\PlacementGroups;
 use LKDev\Tests\TestCase;
 
 class PlacementGroupTest extends TestCase
 {
-    /**
-     * @var PlacementGroup
-     */
-    protected $placement_group;
+    protected PlacementGroup $placement_group;
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function setUp(): void
     {
         parent::setUp();

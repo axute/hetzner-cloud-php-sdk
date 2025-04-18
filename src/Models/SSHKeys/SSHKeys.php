@@ -9,6 +9,8 @@
 
 namespace LKDev\HetznerCloud\Models\SSHKeys;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -21,22 +23,12 @@ class SSHKeys extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $ssh_keys;
+    protected array $ssh_keys;
 
     /**
      * Creates a new SSH Key with the given name and public_key.
-     *
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-post
-     *
-     * @param  string  $name
-     * @param  string  $publicKey
-     * @param  array  $labels
-     * @return SSHKey
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function create(
         string $name,
@@ -62,13 +54,8 @@ class SSHKeys extends Model implements Resources
 
     /**
      * Returns all ssh key objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -81,13 +68,8 @@ class SSHKeys extends Model implements Resources
 
     /**
      * Returns all ssh key objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return APIResponse
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
@@ -107,39 +89,26 @@ class SSHKeys extends Model implements Resources
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input):static
     {
-        $this->ssh_keys = collect($input)->map(function ($sshKey, $key) {
+        $this->ssh_keys = collect($input)->map(function ($sshKey) {
             return SSHKey::parse($sshKey);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
     /**
      * Returns a specific ssh key object.
-     *
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get-1
-     *
-     * @param  int  $sshKeyId
-     * @return SSHKey
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function getById(int $id)
+    public function getById(int $id):SSHKey|null
     {
         $response = $this->httpClient->get('ssh_keys/'.$id);
         if (! HetznerAPIClient::hasError($response)) {
@@ -151,24 +120,17 @@ class SSHKeys extends Model implements Resources
 
     /**
      * Returns a specific ssh key object.
-     *
      * @see https://docs.hetzner.cloud/#resources-ssh-keys-get-1
-     *
-     * @param  int  $sshKeyId
-     * @return SSHKey
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?SSHKey
     {
+        /** @var SSHKeys $sshKeys */
         $sshKeys = $this->list(new SSHKeyRequestOpts($name));
 
         return (count($sshKeys->ssh_keys) > 0) ? $sshKeys->ssh_keys[0] : null;
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
         return ['one' => 'ssh_key', 'many' => 'ssh_keys'];

@@ -10,74 +10,43 @@
 namespace LKDev\HetznerCloud;
 
 use LKDev\HetznerCloud\Models\Model;
+use stdClass;
 
-/**
- * Class ApiResponse.
- */
 class APIResponse
 {
-    /**
-     * @var array
-     */
-    protected $header = [];
-    /**
-     * @var array
-     */
-    protected $response = [];
+    protected array $header = [];
+    protected array $response = [];
 
-    /**
-     * @return array
-     */
     public function getResponse(): array
     {
         return $this->response;
     }
 
-    /**
-     * @param  string|null  $resource
-     * @return Model|string|bool
-     */
-    public function getResponsePart(?string $resource = null)
+    public function getResponsePart(?string $resource = null): Model|stdClass|bool|string|array
     {
         return (array_key_exists($resource, $this->response)) ? $this->response[$resource] : false;
     }
 
-    /**
-     * @param  array  $response
-     */
-    public function setResponse(array $response)
+    public function setResponse(array $response): static
     {
         $this->response = $response;
+        return $this;
     }
 
-    /**
-     * @param  array  $header
-     */
-    public function setHeader(array $header)
+    public function setHeader(array $header): static
     {
         $this->header = $header;
+        return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getHeader(): array
     {
         return $this->header;
     }
 
-    /**
-     * @param  array  $response
-     * @param  array  $header
-     * @return APIResponse
-     */
-    public static function create(array $response, array $header = [])
+    public static function create(array $response, array $header = []): static
     {
-        $apiResponse = new self();
-        $apiResponse->setResponse($response);
-        $apiResponse->setHeader($header);
-
-        return $apiResponse;
+        return (new self())->setResponse($response)->setHeader($header);
     }
 
     public function __get($name)

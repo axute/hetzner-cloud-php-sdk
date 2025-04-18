@@ -2,6 +2,8 @@
 
 namespace LKDev\HetznerCloud\Models\LoadBalancerTypes;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -14,20 +16,12 @@ class LoadBalancerTypes extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $load_balancer_types;
+    protected array $load_balancer_types;
 
     /**
      * Returns all load balancer type objects.
-     *
      * @see https://docs.hetzner.cloud/#load-balancer-types-get-all-load-balancer-types
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -40,25 +34,20 @@ class LoadBalancerTypes extends Model implements Resources
 
     /**
      * Returns all load balancer type objects.
-     *
      * @see https://docs.hetzner.cloud/#load-balancer-types-get-all-load-balancer-types
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new LoadBalancerTypeRequestOpts();
         }
-        $response = $this->httpClient->get('load_balancer_types'.$requestOpts->buildQuery());
-        if (! HetznerAPIClient::hasError($response)) {
-            $resp = json_decode((string) $response->getBody());
+        $response = $this->httpClient->get('load_balancer_types' . $requestOpts->buildQuery());
+        if (!HetznerAPIClient::hasError($response)) {
+            $resp = json_decode((string)$response->getBody());
 
             return APIResponse::create([
-                'meta' => Meta::parse($resp->meta),
+                'meta'                    => Meta::parse($resp->meta),
                 $this->_getKeys()['many'] => self::parse($resp->{$this->_getKeys()['many']})->{$this->_getKeys()['many']},
             ], $response->getHeaders());
         }
@@ -68,19 +57,14 @@ class LoadBalancerTypes extends Model implements Resources
 
     /**
      * Gets a specific Load Balancer type object.
-     *
      * @see https://docs.hetzner.cloud/#load-balancer-types-get-a-load-balancer-type
-     *
-     * @param  int  $id
-     * @return LoadBalancerType
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getById(int $id): ?LoadBalancerType
     {
-        $response = $this->httpClient->get('load_balancer_types/'.$id);
-        if (! HetznerAPIClient::hasError($response)) {
-            return LoadBalancerType::parse(json_decode((string) $response->getBody())->load_balancer_type);
+        $response = $this->httpClient->get('load_balancer_types/' . $id);
+        if (!HetznerAPIClient::hasError($response)) {
+            return LoadBalancerType::parse(json_decode((string)$response->getBody())->load_balancer_type);
         }
 
         return null;
@@ -88,48 +72,35 @@ class LoadBalancerTypes extends Model implements Resources
 
     /**
      * Gets a specific Load Balancer type object by its name.
-     *
      * @see https://docs.hetzner.cloud/#load-balancer-types-get-a-load-balancer-type
-     *
-     * @param  string  $name
-     * @return LoadBalancerType
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?LoadBalancerType
     {
+        /** @var LoadBalancerTypes $loadBalancerTypes */
         $loadBalancerTypes = $this->list(new LoadBalancerTypeRequestOpts($name));
 
         return (count($loadBalancerTypes->load_balancer_types) > 0) ? $loadBalancerTypes->load_balancer_types[0] : null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
-        $this->load_balancer_types = collect($input)->map(function ($loadBalancerType, $key) {
+        $this->load_balancer_types = collect($input)->map(function ($loadBalancerType) {
             return LoadBalancerType::parse($loadBalancerType);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
-        return ['one' => 'load_balancer_type', 'many' => 'load_balancer_types'];
+        return ['one'  => 'load_balancer_type',
+                'many' => 'load_balancer_types'
+        ];
     }
 }

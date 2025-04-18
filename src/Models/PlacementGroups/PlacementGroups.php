@@ -2,6 +2,8 @@
 
 namespace LKDev\HetznerCloud\Models\PlacementGroups;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -14,20 +16,12 @@ class PlacementGroups extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $placement_groups;
+    protected array $placement_groups;
 
     /**
      * Returns all existing PlacementGroup objects.
-     *
      * @see https://docs.hetzner.cloud/#placement-groups-get-all-PlacementGroups
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -40,13 +34,8 @@ class PlacementGroups extends Model implements Resources
 
     /**
      * Returns all existing PlacementGroup objects.
-     *
      * @see https://docs.hetzner.cloud/#placement-groups-get-all-PlacementGroups
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
@@ -68,13 +57,8 @@ class PlacementGroups extends Model implements Resources
 
     /**
      * Returns a specific PlacementGroup object. The PlacementGroup must exist inside the project.
-     *
      * @see https://docs.hetzner.cloud/#placement-groups-get-a-PlacementGroup
-     *
-     * @param  int  $id
-     * @return ?PlacementGroup
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getById(int $id): ?PlacementGroup
     {
@@ -88,32 +72,25 @@ class PlacementGroups extends Model implements Resources
 
     /**
      * Returns a specific PlacementGroup object by its name. The PlacementGroup must exist inside the project.
-     *
      * @see https://docs.hetzner.cloud/#placement-groups
-     *
-     * @param  string  $name
-     * @return PlacementGroup|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?PlacementGroup
     {
+        /** @var PlacementGroups $placementGroups */
         $placementGroups = $this->list(new PlacementGroupRequestOpts($name));
 
         return (count($placementGroups->placement_groups) > 0) ? $placementGroups->placement_groups[0] : null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
         $this->placement_groups = collect($input)
             ->map(function ($placementGroup) {
                 if ($placementGroup != null) {
                     return PlacementGroup::parse($placementGroup);
                 }
+                return null;
             })
             ->toArray();
 
@@ -121,14 +98,9 @@ class PlacementGroups extends Model implements Resources
     }
 
     /**
-     * @param  string  $name
-     * @param  string  $type
-     * @param  array  $labels
-     * @return ?APIResponse
-     *
-     * @throws \LKDev\HetznerCloud\APIException|\GuzzleHttp\Exception\GuzzleException
+     * @throws APIException|GuzzleException
      */
-    public function create(string $name, string $type, array $labels = [])
+    public function create(string $name, string $type, array $labels = []): ?APIResponse
     {
         $payload = [
             'name' => $name,
@@ -152,18 +124,11 @@ class PlacementGroups extends Model implements Resources
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
         return ['one' => 'placement_group', 'many' => 'placement_groups'];

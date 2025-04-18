@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpPossiblePolymorphicInvocationInspection */
 
 /**
  * Created by PhpStorm.
@@ -9,10 +9,12 @@
 
 namespace LKDev\Tests\Unit\Models\Servers;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
-use LKDev\HetznerCloud\Models\Images\Image;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\Models\Images\ImageReference;
 use LKDev\HetznerCloud\Models\ISOs\ISO;
-use LKDev\HetznerCloud\Models\Networks\Network;
+use LKDev\HetznerCloud\Models\Networks\NetworkReference;
 use LKDev\HetznerCloud\Models\Servers\Server;
 use LKDev\HetznerCloud\Models\Servers\Servers;
 use LKDev\HetznerCloud\Models\Servers\Types\ServerType;
@@ -20,19 +22,24 @@ use LKDev\Tests\TestCase;
 
 class ServerTest extends TestCase
 {
-    /**
-     * @var Server
-     */
-    protected $server;
+    protected Server $server;
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function setUp(): void
     {
         parent::setUp();
         $tmp = new Servers($this->hetznerApi->getHttpClient());
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server.json')));
         $this->server = $tmp->get(42);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testDisableBackups()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('disable_backup')));
@@ -44,6 +51,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/disable_backup');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testReset()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('reset_server')));
@@ -54,6 +65,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/reset');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testDisableRescue()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('disable_rescue')));
@@ -64,6 +79,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/disable_rescue');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testChangeProtection()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('change_protection')));
@@ -72,9 +91,16 @@ class ServerTest extends TestCase
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
         $this->assertLastRequestEquals('POST', '/servers/42/actions/change_protection');
-        $this->assertLastRequestBodyParametersEqual(['delete' => true, 'rebuild' => true]);
+        $this->assertLastRequestBodyParametersEqual([
+            'delete'  => true,
+            'rebuild' => true
+        ]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testPowerOff()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('stop_server')));
@@ -85,6 +111,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/poweroff');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testShutdown()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('shutdown_server')));
@@ -95,6 +125,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/shutdown');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testSoftReboot()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('reboot_server')));
@@ -105,9 +139,13 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/reboot');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testRequestConsole()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server_action_request_console.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server_action_request_console.json')));
         $apiResponse = $this->server->requestConsole();
         $this->assertEquals('request_console', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
@@ -116,9 +154,13 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/request_console');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testCreateImage()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server_action_create_image.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server_action_create_image.json')));
         $apiResponse = $this->server->createImage('My Snapshot');
         $this->assertEquals('create_image', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
@@ -126,9 +168,16 @@ class ServerTest extends TestCase
         $this->assertEquals(4711, $apiResponse->getResponsePart('image')->id);
         $this->assertLastRequestEquals('POST', '/servers/42/actions/create_image');
 
-        $this->assertLastRequestBodyParametersEqual(['description' => 'My Snapshot', 'type' => 'snapshot']);
+        $this->assertLastRequestBodyParametersEqual([
+            'description' => 'My Snapshot',
+            'type'        => 'snapshot'
+        ]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testChangeType()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('change_server_type')));
@@ -137,12 +186,19 @@ class ServerTest extends TestCase
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
         $this->assertLastRequestEquals('POST', '/servers/42/actions/change_type');
-        $this->assertLastRequestBodyParametersEqual(['server_type' => 'cx11', 'upgrade_disk' => true]);
+        $this->assertLastRequestBodyParametersEqual([
+            'server_type'  => 'cx11',
+            'upgrade_disk' => true
+        ]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testResetRootPassword()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server_action_reset_password.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server_action_reset_password.json')));
         $apiResponse = $this->server->resetRootPassword();
         $this->assertEquals('reset_password', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
@@ -151,9 +207,13 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/reset_password');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testEnableRescue()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server_action_enable_rescue.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server_action_enable_rescue.json')));
         $apiResponse = $this->server->enableRescue();
         $this->assertEquals('enable_rescue', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
@@ -162,10 +222,14 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['type' => 'linux64']);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testRebuildFromImage()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('rebuild_server')));
-        $apiResponse = $this->server->rebuildFromImage(new Image(4711, 'ubuntu', '', 'ubuntu-20.04'));
+        $apiResponse = $this->server->rebuildFromImage(new ImageReference(id: 4711, name: 'ubuntu-20.04'));
         $this->assertEquals('rebuild_server', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
@@ -173,6 +237,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['image' => 4711]);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testAttachISO()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('attach_iso')));
@@ -184,6 +252,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['iso' => 'FreeBSD-11.0-RELEASE-amd64-dvd1']);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testPowerOn()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('start_server')));
@@ -194,10 +266,14 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('POST', '/servers/42/actions/poweron');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testEnableBackups()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('enable_backup')));
-        $apiResponse = $this->server->enableBackups('22-02');
+        $apiResponse = $this->server->enableBackups();
         $this->assertEquals('enable_backup', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
@@ -205,6 +281,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyIsEmpty();
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testDetachISO()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('detach_iso')));
@@ -216,6 +296,10 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyIsEmpty();
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testChangeReverseDNS()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('change_dns_ptr')));
@@ -224,9 +308,16 @@ class ServerTest extends TestCase
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
         $this->assertLastRequestEquals('POST', '/servers/42/actions/change_dns_ptr');
-        $this->assertLastRequestBodyParametersEqual(['ip' => '127.0.0.1', 'dns_ptr' => 'hello.world']);
+        $this->assertLastRequestBodyParametersEqual([
+            'ip'      => '127.0.0.1',
+            'dns_ptr' => 'hello.world'
+        ]);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testChangeReverseDNSSetToDefault()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('change_dns_ptr')));
@@ -235,9 +326,16 @@ class ServerTest extends TestCase
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
         $this->assertLastRequestEquals('POST', '/servers/42/actions/change_dns_ptr');
-        $this->assertLastRequestBodyParametersEqual(['ip' => '127.0.0.1', 'dns_ptr' => null]);
+        $this->assertLastRequestBodyParametersEqual([
+            'ip'      => '127.0.0.1',
+            'dns_ptr' => null
+        ]);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testDelete()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('delete_server')));
@@ -248,21 +346,34 @@ class ServerTest extends TestCase
         $this->assertLastRequestEquals('DELETE', '/servers/42');
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testReload()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server.json')));
         $server = $this->server->reload();
-        $this->assertEquals($server->id, 42);
-        $this->assertEquals($server->name, 'my-server');
-        $this->assertEquals($server->status, 'running');
+        $this->assertEquals(42, $server->id);
+        $this->assertEquals('my-server', $server->name);
+        $this->assertEquals('running', $server->status);
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testMetrics()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/server_action_metrics.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/server_action_metrics.json')));
         $apiResponse = $this->server->metrics('cpu,disk,network', date('c'), date('c'), 60);
         $metrics = $apiResponse->getResponsePart('metrics');
-        $this->assertEquals([['1435781470.622', '42']], $metrics->time_series->name_of_timeseries->values ?? null);
+        $this->assertEquals([
+            [
+                '1435781470.622',
+                '42'
+            ]
+        ], $metrics->time_series->name_of_timeseries->values ?? null);
         $this->assertLastRequestEquals('GET', '/servers/42/metrics');
         $this->assertLastRequestQueryParametersContains('type', 'cpu,disk,network');
         $this->assertLastRequestQueryParametersContains('start', date('c'));
@@ -270,10 +381,14 @@ class ServerTest extends TestCase
         $this->assertLastRequestQueryParametersContains('step', 60);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testAttachToNetworkBasic()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('attach_to_network')));
-        $apiResponse = $this->server->attachToNetwork(new Network(4711));
+        $apiResponse = $this->server->attachToNetwork(new NetworkReference(id: 4711));
         $this->assertEquals('attach_to_network', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
@@ -282,22 +397,34 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['network' => 4711]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testAttachToNetworkAdvanced()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('attach_to_network')));
-        $apiResponse = $this->server->attachToNetwork(new Network(4711), '10.0.1.1', ['10.0.1.2']);
+        $apiResponse = $this->server->attachToNetwork(new NetworkReference(id: 4711), '10.0.1.1', ['10.0.1.2']);
         $this->assertEquals('attach_to_network', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
 
         $this->assertLastRequestEquals('POST', '/servers/42/actions/attach_to_network');
-        $this->assertLastRequestBodyParametersEqual(['network' => 4711, 'ip' => '10.0.1.1', 'alias_ips' => ['10.0.1.2']]);
+        $this->assertLastRequestBodyParametersEqual([
+            'network'   => 4711,
+            'ip'        => '10.0.1.1',
+            'alias_ips' => ['10.0.1.2']
+        ]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testDetachFromNetwork()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('detach_from_network')));
-        $apiResponse = $this->server->detachFromNetwork(new Network(4711));
+        $apiResponse = $this->server->detachFromNetwork(new NetworkReference(id: 4711));
         $this->assertEquals('detach_from_network', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
@@ -306,20 +433,27 @@ class ServerTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['network' => 4711]);
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testChangeAliasIPs()
     {
         $this->mockHandler->append(new Response(200, [], $this->getGenericActionResponse('change_alias_ips')));
-        $apiResponse = $this->server->changeAliasIPs(new Network(4711), ['10.0.1.2']);
+        $apiResponse = $this->server->changeAliasIPs(new NetworkReference(id: 4711), ['10.0.1.2']);
         $this->assertEquals('change_alias_ips', $apiResponse->action->command);
         $this->assertEquals($this->server->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('server', $apiResponse->action->resources[0]->type);
 
         $this->assertLastRequestEquals('POST', '/servers/42/actions/change_alias_ips');
-        $this->assertLastRequestBodyParametersEqual(['network' => 4711, 'alias_ips' => ['10.0.1.2']]);
+        $this->assertLastRequestBodyParametersEqual([
+            'network'   => 4711,
+            'alias_ips' => ['10.0.1.2']
+        ]);
     }
 
-    protected function getGenericActionResponse(string $command)
+    protected function getGenericActionResponse(string $command): array|false|string
     {
-        return str_replace('$command', $command, file_get_contents(__DIR__.'/fixtures/server_action_generic.json'));
+        return str_replace('$command', $command, file_get_contents(__DIR__ . '/fixtures/server_action_generic.json'));
     }
 }

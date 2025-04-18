@@ -1,9 +1,11 @@
 <?php
 
-namespace LKDev\Tests\Unit\Models\LoadBalancers;
+namespace LKDev\Tests\Unit\Models\LoadBalancerTypes;
 
 use BadMethodCallException;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\LoadBalancerTypes\LoadBalancerType;
 use LKDev\HetznerCloud\Models\LoadBalancerTypes\LoadBalancerTypes;
 use LKDev\Tests\TestCase;
@@ -13,11 +15,12 @@ use LKDev\Tests\TestCase;
  */
 class LoadBalancerTypeTest extends TestCase
 {
-    /**
-     * @var LoadBalancerType
-     */
-    protected $load_balancer_type;
+    protected LoadBalancerType $load_balancer_type;
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function setUp(): void
     {
         parent::setUp();

@@ -3,76 +3,33 @@
 namespace LKDev\HetznerCloud\Models\Servers\Types;
 
 use LKDev\HetznerCloud\Models\Model;
+use stdClass;
 
 class ServerType extends Model
 {
-    /**
-     * @var int
-     */
-    public $id;
 
-    /**
-     * @var string
-     */
-    public $name;
+    public string $description;
+    public string $cores;
 
-    /**
-     * @var string
-     */
-    public $description;
+    public string $memory;
 
-    /**
-     * @var string
-     */
-    public $cores;
+    public string $disk;
 
-    /**
-     * @var string
-     */
-    public $memory;
+    public array $prices;
 
-    /**
-     * @var string
-     */
-    public $disk;
+    public string $storageType;
 
-    /**
-     * @var array
-     */
-    public $prices;
+    public string $cpuType;
+    public string $architecture;
 
-    /**
-     * @var string
-     */
-    public $storageType;
-
-    /**
-     * @var string
-     */
-    public $cpuType;
-
-    /**
-     * @var string
-     */
-    public $architecture;
-
-    /**
-     * ServerType constructor.
-     *
-     * @param  int  $serverTypeId
-     */
-    public function __construct(int $serverTypeId, string $name = '')
+    public function __construct(
+        public int    $id,
+        public string $name = '')
     {
-        $this->id = $serverTypeId;
-        $this->name = $name;
         parent::__construct();
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
         $this->name = $input->name;
         $this->description = $input->description;
@@ -87,12 +44,11 @@ class ServerType extends Model
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return self
-     */
-    public static function parse($input): null|static
+    public static function parse(stdClass|null|array $input): null|static
     {
+        if ($input === null) {
+            return null;
+        }
         return (new self($input->id))->setAdditionalData($input);
     }
 }

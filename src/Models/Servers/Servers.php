@@ -9,6 +9,8 @@
 
 namespace LKDev\HetznerCloud\Models\Servers;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
@@ -25,20 +27,12 @@ class Servers extends Model
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $servers;
+    protected array $servers;
 
     /**
      * Returns all existing server objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-get
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -51,25 +45,20 @@ class Servers extends Model
 
     /**
      * List server objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-get
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new ServerRequestOpts();
         }
-        $response = $this->httpClient->get('servers'.$requestOpts->buildQuery());
-        if (! HetznerAPIClient::hasError($response)) {
-            $resp = json_decode((string) $response->getBody());
+        $response = $this->httpClient->get('servers' . $requestOpts->buildQuery());
+        if (!HetznerAPIClient::hasError($response)) {
+            $resp = json_decode((string)$response->getBody());
 
             return APIResponse::create([
-                'meta' => Meta::parse($resp->meta),
+                'meta'                    => Meta::parse($resp->meta),
                 $this->_getKeys()['many'] => self::parse($resp->{$this->_getKeys()['many']})->{$this->_getKeys()['many']},
             ], $response->getHeaders());
         }
@@ -79,16 +68,12 @@ class Servers extends Model
 
     /**
      * Returns a specific server object by its name. The server must exist inside the project.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-get
-     *
-     * @param  string  $serverName
-     * @return Server|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $serverName): ?Server
     {
+        /** @var Servers $servers */
         $servers = $this->list(new ServerRequestOpts($serverName));
 
         return (count($servers->servers) > 0) ? $servers->servers[0] : null;
@@ -96,19 +81,14 @@ class Servers extends Model
 
     /**
      * Returns a specific server object by its id. The server must exist inside the project.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-get
-     *
-     * @param  int  $serverId
-     * @return Server|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getById(int $serverId): ?Server
     {
-        $response = $this->httpClient->get('servers/'.$serverId);
-        if (! HetznerAPIClient::hasError($response)) {
-            return Server::parse(json_decode((string) $response->getBody())->{$this->_getKeys()['one']});
+        $response = $this->httpClient->get('servers/' . $serverId);
+        if (!HetznerAPIClient::hasError($response)) {
+            return Server::parse(json_decode((string)$response->getBody())->{$this->_getKeys()['one']});
         }
 
         return null;
@@ -116,20 +96,14 @@ class Servers extends Model
 
     /**
      * Deletes a specific server object by its id. The server must exist inside the project.
-     *
      * @see https://docs.hetzner.cloud/#servers-delete-a-server
-     *
-     * @param  int  $serverId
-     * @return Action|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function deleteById(int $serverId): ?Action
     {
-        $response = $this->httpClient->delete('servers/'.$serverId);
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
-
+        $response = $this->httpClient->delete('servers/' . $serverId);
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
             return Action::parse($payload->action);
         }
 
@@ -138,60 +112,43 @@ class Servers extends Model
 
     /**
      * Creates a new server in a datacenter instead of in a location. Returns preliminary information about the server as well as an action that covers progress of creation.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-post
-     *
-     * @param  string  $name
-     * @param ServerType $serverType
-     * @param Image $image
-     * @param Location $location
-     * @param Datacenter $datacenter
-     * @param  array  $ssh_keys
-     * @param  bool  $startAfterCreate
-     * @param  string  $user_data
-     * @param  array  $volumes
-     * @param  bool  $automount
-     * @param  array  $networks
-     * @param  array  $labels
-     * @param  array  $firewalls
-     * @param  array  $public_net
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function createInDatacenter(
-        string $name,
-        ServerType $serverType,
-        Image $image,
+        string      $name,
+        ServerType  $serverType,
+        Image       $image,
         ?Datacenter $datacenter = null,
-        $ssh_keys = [],
-        $startAfterCreate = true,
-        $user_data = '',
-        $volumes = [],
-        $automount = false,
-        $networks = [],
-        array $labels = [],
-        array $firewalls = [],
-        array $public_net = [],
-        ?int $placement_group = null
-    ): ?APIResponse {
+        array       $ssh_keys = [],
+        bool        $startAfterCreate = true,
+        string      $user_data = '',
+        array       $volumes = [],
+        bool        $automount = false,
+        array       $networks = [],
+        array       $labels = [],
+        array       $firewalls = [],
+        array       $public_net = [],
+        ?int        $placement_group = null
+    ): ?APIResponse
+    {
         $parameters = [
-            'name' => $name,
-            'server_type' => $serverType->id,
-            'datacenter' => $datacenter?->id,
-            'image' => $image->id,
+            'name'               => $name,
+            'server_type'        => $serverType->id,
+            'datacenter'         => $datacenter?->id,
+            'image'              => $image->id,
             'start_after_create' => $startAfterCreate,
-            'user_data' => $user_data,
-            'ssh_keys' => $ssh_keys,
-            'volumes' => $volumes,
-            'automount' => $automount,
-            'networks' => $networks,
-            'public_net' => $public_net,
+            'user_data'          => $user_data,
+            'ssh_keys'           => $ssh_keys,
+            'volumes'            => $volumes,
+            'automount'          => $automount,
+            'networks'           => $networks,
+            'public_net'         => $public_net,
         ];
-        if (! empty($labels)) {
+        if (!empty($labels)) {
             $parameters['labels'] = $labels;
         }
-        if (! empty($firewalls)) {
+        if (!empty($firewalls)) {
             $parameters['firewalls'] = $firewalls;
         }
         if ($placement_group != null) {
@@ -201,12 +158,12 @@ class Servers extends Model
             'json' => $parameters,
         ]);
 
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
 
             return APIResponse::create(array_merge([
-                'action' => Action::parse($payload->action),
-                'server' => Server::parse($payload->server),
+                'action'       => Action::parse($payload->action),
+                'server'       => Server::parse($payload->server),
                 'next_actions' => collect($payload->next_actions)->map(function ($action) {
                     return Action::parse($action);
                 })->toArray(),
@@ -219,57 +176,42 @@ class Servers extends Model
 
     /**
      * Creates a new server in a location instead of in a datacenter. Returns preliminary information about the server as well as an action that covers progress of creation.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-post
-     *
-     * @param  string  $name
-     * @param  ServerType  $serverType
-     * @param  Image  $image
-     * @param  Location|null  $location
-     * @param  array  $ssh_keys
-     * @param  bool  $startAfterCreate
-     * @param  string  $user_data
-     * @param  array  $volumes
-     * @param  bool  $automount
-     * @param  array  $networks
-     * @param  array  $labels
-     * @param  array  $firewalls
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function createInLocation(string $name,
+    public function createInLocation(string     $name,
                                      ServerType $serverType,
-                                     Image $image,
-                                     ?Location $location = null,
-                                     array $ssh_keys = [],
-                                     bool $startAfterCreate = true,
-                                     string $user_data = '',
-                                     array $volumes = [],
-                                     bool $automount = false,
-                                     array $networks = [],
-                                     array $labels = [],
-                                     array $firewalls = [],
-                                     array $public_net = [],
-                                     ?int $placement_group = null
-    ): ?APIResponse {
+                                     Image      $image,
+                                     ?Location  $location = null,
+                                     array      $ssh_keys = [],
+                                     bool       $startAfterCreate = true,
+                                     string     $user_data = '',
+                                     array      $volumes = [],
+                                     bool       $automount = false,
+                                     array      $networks = [],
+                                     array      $labels = [],
+                                     array      $firewalls = [],
+                                     array      $public_net = [],
+                                     ?int       $placement_group = null
+    ): ?APIResponse
+    {
         $parameters = [
-            'name' => $name,
-            'server_type' => $serverType->id,
-            'location' => $location?->id,
-            'image' => $image->id,
+            'name'               => $name,
+            'server_type'        => $serverType->id,
+            'location'           => $location?->id,
+            'image'              => $image->id,
             'start_after_create' => $startAfterCreate,
-            'user_data' => $user_data,
-            'ssh_keys' => $ssh_keys,
-            'volumes' => $volumes,
-            'automount' => $automount,
-            'networks' => $networks,
-            'public_net' => $public_net,
+            'user_data'          => $user_data,
+            'ssh_keys'           => $ssh_keys,
+            'volumes'            => $volumes,
+            'automount'          => $automount,
+            'networks'           => $networks,
+            'public_net'         => $public_net,
         ];
-        if (! empty($labels)) {
+        if (!empty($labels)) {
             $parameters['labels'] = $labels;
         }
-        if (! empty($firewalls)) {
+        if (!empty($firewalls)) {
             $parameters['firewalls'] = $firewalls;
         }
         if ($placement_group != null) {
@@ -278,12 +220,12 @@ class Servers extends Model
         $response = $this->httpClient->post('servers', [
             'json' => $parameters,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
 
             return APIResponse::create(array_merge([
-                'action' => Action::parse($payload->action),
-                'server' => Server::parse($payload->server),
+                'action'       => Action::parse($payload->action),
+                'server'       => Server::parse($payload->server),
                 'next_actions' => collect($payload->next_actions)->map(function ($action) {
                     return Action::parse($action);
                 })->toArray(),
@@ -294,11 +236,7 @@ class Servers extends Model
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
         $this->servers = collect($input)
             ->map(function ($server) {
@@ -313,20 +251,16 @@ class Servers extends Model
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
-        return ['one' => 'server', 'many' => 'servers'];
+        return [
+            'one'  => 'server',
+            'many' => 'servers'
+        ];
     }
 }

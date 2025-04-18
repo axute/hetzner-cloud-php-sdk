@@ -9,12 +9,14 @@
 
 namespace LKDev\Tests\Unit\Models\Firewalls;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\Firewalls\Firewall;
 use LKDev\HetznerCloud\Models\Firewalls\FirewallResource;
 use LKDev\HetznerCloud\Models\Firewalls\FirewallRule;
 use LKDev\HetznerCloud\Models\Firewalls\Firewalls;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 use LKDev\Tests\TestCase;
 
 /**
@@ -22,11 +24,12 @@ use LKDev\Tests\TestCase;
  */
 class FirewallTest extends TestCase
 {
-    /**
-     * @var Firewall
-     */
-    protected $firewall;
+    protected Firewall $firewall;
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function setUp(): void
     {
         parent::setUp();
@@ -36,7 +39,7 @@ class FirewallTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testDelete()
     {
@@ -45,25 +48,26 @@ class FirewallTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testUpdate()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/firewall.json')));
-        $this->assertEquals($this->firewall->id, 38);
-        $this->assertEquals($this->firewall->name, 'Corporate Intranet Protection');
+        $this->assertEquals(38, $this->firewall->id);
+        $this->assertEquals('Corporate Intranet Protection', $this->firewall->name);
+        /** @noinspection PhpUnusedLocalVariableInspection */
         $result = $this->firewall->update(['description' => 'New description']);
         $this->assertLastRequestEquals('PUT', '/firewalls/38');
         $this->assertLastRequestBodyParametersEqual(['description' => 'New description']);
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testApplyToResources()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/firewall_action_apply_to_resources.json')));
-        $apiResponse = $this->firewall->applyToResources([new FirewallResource('server', new Server(42))]);
+        $apiResponse = $this->firewall->applyToResources([new FirewallResource('server', new ServerReference(id: 42))]);
         $this->assertIsArray($apiResponse->actions);
         $this->assertCount(1, $apiResponse->actions);
         $this->assertEquals('apply_firewall', $apiResponse->actions[0]->command);
@@ -76,12 +80,12 @@ class FirewallTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testRemoveFromResources()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/firewall_action_remove_from_resources.json')));
-        $apiResponse = $this->firewall->removeFromResources([new FirewallResource('server', new Server(42))]);
+        $apiResponse = $this->firewall->removeFromResources([new FirewallResource('server', new ServerReference(id: 42))]);
         $this->assertIsArray($apiResponse->actions);
         $this->assertCount(1, $apiResponse->actions);
         $this->assertEquals('remove_firewall', $apiResponse->actions[0]->command);
@@ -94,7 +98,7 @@ class FirewallTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testSetRules()
     {

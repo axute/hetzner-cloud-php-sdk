@@ -2,7 +2,9 @@
 
 namespace LKDev\Tests\Unit\Models\PrimaryIps;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIp;
 use LKDev\HetznerCloud\Models\PrimaryIps\PrimaryIps;
 use LKDev\Tests\TestCase;
@@ -12,11 +14,12 @@ use LKDev\Tests\TestCase;
  */
 class PrimaryIpTest extends TestCase
 {
-    /**
-     * @var PrimaryIp
-     */
-    protected $primaryIp;
+    protected PrimaryIp $primaryIp;
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function setUp(): void
     {
         parent::setUp();
@@ -26,12 +29,13 @@ class PrimaryIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeProtection()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/primaryIP_action_change_protection.json')));
-        $apiResponse = $this->primaryIp->changeProtection(true);
+        $apiResponse = $this->primaryIp->changeProtection();
 
         $this->assertEquals('change_protection', $apiResponse->action->command);
         $this->assertEquals($this->primaryIp->id, $apiResponse->action->resources[0]->id);
@@ -41,7 +45,7 @@ class PrimaryIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testDelete()
     {
@@ -50,7 +54,8 @@ class PrimaryIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testAssign()
     {
@@ -67,7 +72,8 @@ class PrimaryIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testUnassign()
     {
@@ -83,7 +89,8 @@ class PrimaryIpTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeReverseDNS()
     {

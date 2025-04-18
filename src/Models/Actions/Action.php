@@ -2,152 +2,76 @@
 
 namespace LKDev\HetznerCloud\Models\Actions;
 
+use BadMethodCallException;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Model;
+use LKDev\HetznerCloud\Traits\PropertiesTrait;
+use stdClass;
+
 
 class Action extends Model implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
+    use PropertiesTrait;
 
-    /**
-     * @var string
-     */
-    public $command;
-
-    /**
-     * @var string
-     */
-    public $status;
-    /**
-     * @var int
-     */
-    public $progress;
-
-    /**
-     * @var string
-     */
-    public $started;
-
-    /**
-     * @var string
-     */
-    public $finished;
-
-    /**
-     * @var array
-     */
-    public $resources;
-
-    /**
-     * @var |null
-     */
-    public $error;
-
-    /**
-     * Action constructor.
-     *
-     * @param  int  $id
-     * @param  string  $command
-     * @param  int  $progress
-     * @param  string  $status
-     * @param  string  $started
-     * @param  string  $finished
-     * @param  array  $resources
-     * @param null| $error
-     * @param  string|null  $root_password
-     * @param  string|null  $wss_url
-     */
     public function __construct(
-        int $id,
-        string $command,
-        int $progress,
-        string $status,
-        string $started,
-        ?string $finished = null,
-        $resources = null,
-        $error = null
-    ) {
-        $this->id = $id;
-        $this->command = $command;
-        $this->progress = $progress;
-        $this->status = $status;
-        $this->started = $started;
-        $this->finished = $finished;
-        $this->resources = $resources;
-        $this->error = $error;
+        public int                  $id,
+        public string               $command,
+        public int                  $progress,
+        public string               $status,
+        public string               $started,
+        public ?string              $finished = null,
+        public ?array               $resources = null,
+        public string|stdClass|null $error = null
+    )
+    {
         parent::__construct();
     }
 
     /**
-     * @param  $actionId
-     * @return Action|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
-     *
-     * @deprecated use Actions::getById instead
-     */
-    public function getById($actionId): ?self
-    {
-        $response = $this->httpClient->get('actions/'.$actionId);
-        if (! HetznerAPIClient::hasError($response)) {
-            return self::parse(json_decode((string) $response->getBody())->action);
-        }
-
-        return null;
-    }
-
-    /**
-     * @return Action
-     *
-     * @throws \LKDev\HetznerCloud\APIException
-     */
-    public function refresh(): self
-    {
-        return $this->reload();
-    }
-
-    /**
      * Wait for an action to complete.
-     *
-     * @param  float  $pollingInterval  seconds
-     * @return bool
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
-    public function waitUntilCompleted($pollingInterval = 0.5)
+    public function waitUntilCompleted(float $pollingIntervalInSeconds = 0.5): bool
     {
-        return Actions::waitActionCompleted($this, $pollingInterval);
+        return Actions::waitActionCompleted($this, $pollingIntervalInSeconds);
     }
 
-    public function reload()
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function reload(): ?static
     {
         return HetznerAPIClient::$instance->actions()->getById($this->id);
     }
 
-    public function delete()
+    public function delete(): APIResponse|bool|null
     {
-        throw new \BadMethodCallException('delete on action is not possible');
+        throw new BadMethodCallException('delete on action is not possible');
     }
 
     public function update(array $data)
     {
-        throw new \BadMethodCallException('update on action is not possible');
+        throw new BadMethodCallException('update on action is not possible');
     }
 
-    /**
-     * @param  $input
-     * @return Action|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {
             return null;
         }
 
-        return new self($input->id, $input->command, $input->progress, $input->status, $input->started, $input->finished, $input->resources, $input->error ?? null);
+        return new self(id: $input->id,
+            command: $input->command,
+            progress: $input->progress,
+            status: $input->status,
+            started: $input->started,
+            finished: $input->finished,
+            resources: $input->resources,
+            error: $input->error ?? null);
     }
 }

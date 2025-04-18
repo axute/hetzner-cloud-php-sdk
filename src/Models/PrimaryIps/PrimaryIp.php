@@ -2,6 +2,8 @@
 
 namespace LKDev\HetznerCloud\Models\PrimaryIps;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
@@ -9,125 +11,39 @@ use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Datacenters\Datacenter;
 use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Protection;
-use LKDev\HetznerCloud\Models\Servers\Server;
 
 class PrimaryIp extends Model implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $created;
-
-    /**
-     * @var string
-     */
-    public $ip;
-
-    /**
-     * @var string
-     */
-    public $type;
-
-    /**
-     * @var array
-     */
-    public $dns_ptr;
-
-    /**
-     * @var bool
-     */
-    public $blocked;
-
-    /**
-     * @var array|Protection
-     */
-    public $protection;
-
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * @var array|Datacenter
-     */
-    public $datacenter;
-
-    /**
-     * @var string
-     */
-    public $assignee_type;
-
-    /**
-     * @var int
-     */
-    public $assignee_id;
-
-    /**
-     * @var bool
-     */
-    public $auto_delete;
-
-    /**
-     * @param  int  $id
-     * @param  string  $name
-     * @param  string  $created
-     * @param  string  $ip
-     * @param  string  $type
-     * @param  array  $dns_ptr
-     * @param  bool  $blocked
-     * @param  array|Protection  $protection
-     * @param  array  $labels
-     * @param  array|Datacenter $datacenter
-     * @param  string  $assignee_type
-     * @param  int|null  $assignee_id
-     * @param  bool  $auto_delete
-     */
-    public function __construct(int $id, string $name, string $created, string $ip, string $type, array $dns_ptr, bool $blocked, $protection, array $labels, $datacenter, string $assignee_type, ?int $assignee_id = null, bool $auto_delete = false)
+    public function __construct(
+        public int                   $id,
+        public                  string                $name,
+        public                  string                $created,
+        public                  string                $ip,
+        public                  string                $type,
+        public                  array                 $dns_ptr,
+        public                  bool                  $blocked,
+        public                  array|Protection|null $protection,
+        public                  array                 $labels,
+        public                  Datacenter|array      $datacenter,
+        public                  string                $assignee_type,
+        public                  ?int                  $assignee_id = null,
+        public                  bool                  $auto_delete = false)
     {
-        $this->id = $id;
-        $this->name = $name;
-        $this->created = $created;
-        $this->ip = $ip;
-        $this->type = $type;
-        $this->dns_ptr = $dns_ptr;
-        $this->blocked = $blocked;
-        $this->protection = $protection;
-        $this->labels = $labels;
-        $this->datacenter = $datacenter;
-        $this->assignee_type = $assignee_type;
-        $this->assignee_id = $assignee_id;
-        $this->auto_delete = $auto_delete;
         parent::__construct();
     }
 
     /**
      * Update the Primary IP.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-update-a-primary-ip
-     *
-     * @param  array  $data
-     * @return static|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function update(array $data): ?self
     {
-        $response = $this->httpClient->put('primary_ips/'.$this->id, [
+        $response = $this->httpClient->put('primary_ips/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            return self::parse(json_decode((string) $response->getBody())->primary_ip);
+        if (!HetznerAPIClient::hasError($response)) {
+            return self::parse(json_decode((string)$response->getBody())->primary_ip);
         }
 
         return null;
@@ -136,27 +52,19 @@ class PrimaryIp extends Model implements Resource
     /**
      * The Primary IP may be assigned to a Server. In this case it is unassigned automatically.
      * The Server must be powered off (status off) in order for this operation to succeed.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-delete-a-primary-ip
-     *
-     * @return bool
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function delete(): bool
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('primary_ips/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('primary_ips/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return true;
         }
 
         return false;
     }
 
-    /**
-     * @param  $input
-     * @return Model|null
-     */
     public static function parse($input): ?static
     {
         if ($input == null) {
@@ -167,35 +75,30 @@ class PrimaryIp extends Model implements Resource
     }
 
     /**
-     * @return mixed
+     * @throws APIException
+     * @throws GuzzleException
      */
-    public function reload()
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->primaryIps()->get($this->id);
     }
 
     /**
      * Assigns a Primary IP to a Server.
-     *
      * @see https://docs.hetzner.cloud/#primary-ip-actions-assign-a-primary-ip-to-a-resource
-     *
-     * @param  int  $assigneeId
-     * @param  string  $assigneeType
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function assignTo(int $assigneeId, string $assigneeType): ?APIResponse
     {
-        $response = $this->httpClient->post('primary_ips/'.$this->id.'/actions/assign', [
+        $response = $this->httpClient->post('primary_ips/' . $this->id . '/actions/assign', [
             'json' => [
-                'assignee_id' => $assigneeId,
+                'assignee_id'   => $assigneeId,
                 'assignee_type' => $assigneeType,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -205,19 +108,15 @@ class PrimaryIp extends Model implements Resource
     /**
      * Unassigns a Primary IP from a Server.
      * The Server must be powered off (status off) in order for this operation to succeed.
-     *
      * @see https://docs.hetzner.cloud/#primary-ip-actions-unassign-a-primary-ip-from-a-resource
-     *
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function unassign(): ?APIResponse
     {
-        $response = $this->httpClient->post('primary_ips/'.$this->id.'/actions/unassign');
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->post('primary_ips/' . $this->id . '/actions/unassign');
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -226,26 +125,20 @@ class PrimaryIp extends Model implements Resource
 
     /**
      * Changes the hostname that will appear when getting the hostname belonging to this Primary IP.
-     *
      * @see https://docs.hetzner.cloud/#primary-ip-actions-change-reverse-dns-entry-for-a-primary-ip
-     *
-     * @param  string  $ip
-     * @param  string|null  $dnsPtr
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function changeReverseDNS(string $ip, ?string $dnsPtr = null): ?APIResponse
     {
-        $response = $this->httpClient->post('primary_ips/'.$this->id.'/actions/change_dns_ptr', [
+        $response = $this->httpClient->post('primary_ips/' . $this->id . '/actions/change_dns_ptr', [
             'json' => [
-                'ip' => $ip,
+                'ip'      => $ip,
                 'dns_ptr' => $dnsPtr,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -254,24 +147,19 @@ class PrimaryIp extends Model implements Resource
 
     /**
      * Changes the protection configuration of a Primary IP.
-     *
      * @see https://docs.hetzner.cloud/#primary-ip-actions-change-primary-ip-protection
-     *
-     * @param  bool  $delete
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function changeProtection(bool $delete = true): ?APIResponse
     {
-        $response = $this->httpClient->post('primary_ips/'.$this->id.'/actions/change_protection', [
+        $response = $this->httpClient->post('primary_ips/' . $this->id . '/actions/change_protection', [
             'json' => [
                 'delete' => $delete,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 

@@ -1,90 +1,29 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: lukaskammerling
- * Date: 28.01.18
- * Time: 21:00.
- */
-
 namespace LKDev\HetznerCloud\Models\Certificates;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Model;
+use stdClass;
 
 class Certificate extends Model implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $certificate;
-    /**
-     * @var string
-     */
-    public $created;
-    /**
-     * @var string
-     */
-    public $not_valid_before;
-    /**
-     * @var string
-     */
-    public $not_valid_after;
-    /**
-     * @var array
-     */
-    public $domain_names;
-    /**
-     * @var string
-     */
-    public $fingerprint;
-    /**
-     * @var \stdClass
-     */
-    public $used_by;
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * Certificate constructor.
-     *
-     * @param  int  $id
-     * @param  string|null  $name
-     * @param  string|null  $certificate
-     * @param  string|null  $created
-     * @param  string|null  $not_valid_before
-     * @param  string|null  $not_valid_after
-     * @param  array|null  $domain_names
-     * @param  string|null  $fingerprint
-     * @param  array|null  $used_by
-     * @param  array|null  $labels
-     */
-    public function __construct(int $id, ?string $name = null, ?string $certificate = null, ?string $created = null, ?string $not_valid_before = null, ?string $not_valid_after = null, ?array $domain_names = null, ?string $fingerprint = null, $used_by = null, $labels = [])
+    public function __construct(
+        public int                 $id,
+        public ?string             $name = null,
+        public ?string             $certificate = null,
+        public ?string             $created = null,
+        public ?string             $not_valid_before = null,
+        public ?string             $not_valid_after = null,
+        public ?array              $domain_names = null,
+        public ?string             $fingerprint = null,
+        public ?array              $used_by = null,
+        public stdClass|array|null $labels = [])
     {
-        $this->id = $id;
-        $this->name = $name;
-        $this->certificate = $certificate;
-        $this->created = $created;
-        $this->not_valid_before = $not_valid_before;
-        $this->not_valid_after = $not_valid_after;
-        $this->domain_names = $domain_names;
-        $this->fingerprint = $fingerprint;
-        $this->used_by = $used_by;
-        $this->labels = $labels;
-
         parent::__construct();
     }
 
@@ -93,60 +32,57 @@ class Certificate extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#resources-certificates-put
      *
-     * @param  array  $data
-     * @return Certificate|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function update(array $data): ?self
+    public function update(array $data): ?static
     {
-        $response = $this->httpClient->put('certificates/'.$this->id, [
+        $response = $this->httpClient->put('certificates/' . $this->id, [
             'json' => $data,
 
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            return self::parse(json_decode((string) $response->getBody())->certificate);
+        if (!HetznerAPIClient::hasError($response)) {
+            return self::parse(json_decode((string)$response->getBody())->certificate);
         }
 
         return null;
     }
 
     /**
-     * Deletes a SSH key. It cannot be used anymore.
+     * Deletes an SSH key. It cannot be used anymore.
      *
      * @see https://docs.hetzner.cloud/#resources-certificates-delete
      *
-     * @return bool
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function delete(): bool
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('certificates/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('certificates/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return true;
         }
 
         return false;
     }
 
-    /**
-     * @param  $input
-     * @return Certificate|static
-     */
     public static function parse($input): null|static
     {
-        return new self($input->id, $input->name, $input->certificate, $input->created, $input->not_valid_before, $input->not_valid_after, $input->domain_names, $input->fingerprint, $input->used_by, $input->labels);
+        return new self(id: $input->id,
+            name: $input->name,
+            certificate: $input->certificate,
+            created: $input->created,
+            not_valid_before: $input->not_valid_before,
+            not_valid_after: $input->not_valid_after,
+            domain_names: $input->domain_names,
+            fingerprint: $input->fingerprint,
+            used_by: $input->used_by,
+            labels: $input->labels);
     }
 
     /**
      * Reload the data of the SSH Key.
-     *
-     * @return Certificate
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
-    public function reload()
+    public function reload(): Certificate
     {
         return HetznerAPIClient::$instance->certificates()->get($this->id);
     }

@@ -2,74 +2,53 @@
 
 namespace LKDev\HetznerCloud\Models\ISOs;
 
+use BadMethodCallException;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
-use LKDev\HetznerCloud\Models\Model;
 
-class ISO extends Model implements Resource
+class ISO extends ISOReference implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $description;
-
-    /**
-     * @var string
-     */
-    public $type;
-
-    /**
-     * ISO constructor.
-     *
-     * @param  int  $id
-     * @param  string  $name
-     * @param  string  $description
-     * @param  string  $type
-     */
-    public function __construct(int $id, ?string $name = null, ?string $description = null, ?string $type = null)
+    public function __construct(
+        int            $id,
+        ?string        $name = null,
+        public ?string $description = null,
+        public ?string $type = null
+    )
     {
-        $this->id = $id;
-        $this->name = $name;
-        $this->description = $description;
-        $this->type = $type;
-        parent::__construct();
+        parent::__construct(id: $id, name: $name);
     }
 
-    /**
-     * @param  $input
-     * @return Model|null
-     */
     public static function parse($input): ?static
     {
         if ($input == null) {
             return null;
         }
 
-        return new self($input->id, $input->name, $input->description, $input->type);
+        return new self(
+            id: $input->id,
+            name: $input->name,
+            description: $input->description,
+            type: $input->type);
     }
 
-    public function reload()
+    /**
+     * @throws GuzzleException|APIException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->isos()->get($this->id);
     }
 
-    public function delete()
+    public function delete(): APIResponse|bool|null
     {
-        throw new \BadMethodCallException('delete on ISOs is not possible');
+        throw new BadMethodCallException('delete on ISOs is not possible');
     }
 
     public function update(array $data)
     {
-        throw new \BadMethodCallException('update on ISOs is not possible');
+        throw new BadMethodCallException('update on ISOs is not possible');
     }
 }

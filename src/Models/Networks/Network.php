@@ -3,6 +3,8 @@
 namespace LKDev\HetznerCloud\Models\Networks;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
@@ -10,91 +12,44 @@ use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Protection;
 use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
 /**
  * Class Network.
  */
-class Network extends Model implements Resource
+class Network extends NetworkReference implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
+    public ?string $name = null;
+    public ?string $ip_range = null;
+    public array $subnets = [];
+    public array $routes = [];
+    /** @var ServerReference[]  */
+    public array $servers = [];
+    public Protection|array|null $protection = null;
+    public array $labels = [];
+    public ?string $created = null;
 
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $ip_range;
-    /**
-     * @var string
-     *
-     * @deprecated Use $ip_range instead
-     */
-    public $ipRange;
-
-    /**
-     * @var array
-     */
-    public $subnets;
-
-    /**
-     * @var array
-     */
-    public $routes;
-
-    /**
-     * @var array
-     */
-    public $servers;
-
-    /**
-     * @var Protection
-     */
-    public $protection;
-
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * @var string
-     */
-    public $created;
-
-    /**
-     * Network constructor.
-     *
-     * @param  int  $id
-     * @param  Client|null  $httpClient
-     */
-    public function __construct(int $id, ?Client $httpClient = null)
+    public function __construct(
+        int $id,
+        ?string $name = null,
+        ?Client    $httpClient = null)
     {
-        $this->id = $id;
-        parent::__construct($httpClient);
+        parent::__construct(id: $id, name: $name, httpClient: $httpClient);
     }
 
     /**
-     * @param  Subnet  $subnet
-     * @return APIResponse
-     *
+     * @throws APIException|GuzzleException
      * @see https://docs.hetzner.cloud/#network-actions-add-a-subnet-to-a-network
      *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function addSubnet(Subnet $subnet)
+    public function addSubnet(Subnet $subnet): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/add_subnet', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/add_subnet', [
             'json' => $subnet->__toRequestPayload(),
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -102,21 +57,18 @@ class Network extends Model implements Resource
     }
 
     /**
-     * @param  Subnet  $subnet
-     * @return APIResponse
-     *
+     * @throws APIException|GuzzleException
      * @see https://docs.hetzner.cloud/#network-actions-delete-a-subnet-from-a-network
      *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function deleteSubnet(Subnet $subnet)
+    public function deleteSubnet(Subnet $subnet): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/delete_subnet', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/delete_subnet', [
             'json' => ['ip_range' => $subnet->ipRange],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -124,21 +76,17 @@ class Network extends Model implements Resource
     }
 
     /**
-     * @param  Route  $route
-     * @return APIResponse
-     *
+     * @throws APIException|GuzzleException
      * @see https://docs.hetzner.cloud/#network-actions-add-a-route-to-a-network
-     *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function addRoute(Route $route)
+    public function addRoute(Route $route): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/add_route', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/add_route', [
             'json' => $route->__toRequestPayload(),
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -146,21 +94,17 @@ class Network extends Model implements Resource
     }
 
     /**
-     * @param  Route  $route
-     * @return APIResponse
-     *
+     * @throws APIException|GuzzleException
      * @see https://docs.hetzner.cloud/#network-actions-delete-a-route-from-a-network
-     *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function deleteRoute(Route $route)
+    public function deleteRoute(Route $route): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/delete_route', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/delete_route', [
             'json' => $route->__toRequestPayload(),
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -168,21 +112,17 @@ class Network extends Model implements Resource
     }
 
     /**
-     * @param  string  $ipRange
-     * @return APIResponse|null
-     *
+     * @throws APIException|GuzzleException
      * @see https://docs.hetzner.cloud/#network-actions-change-ip-range-of-a-network
-     *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function changeIPRange(string $ipRange)
+    public function changeIPRange(string $ipRange): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/change_ip_range', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/change_ip_range', [
             'json' => ['ip_range' => $ipRange],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -191,44 +131,34 @@ class Network extends Model implements Resource
 
     /**
      * Changes the protection configuration of the network.
-     *
      * @see https://docs.hetzner.cloud/#network-actions-change-network-protection
-     *
-     * @param  bool  $delete
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function changeProtection(bool $delete = true): ?APIResponse
     {
-        $response = $this->httpClient->post('networks/'.$this->id.'/actions/change_protection', [
+        $response = $this->httpClient->post('networks/' . $this->id . '/actions/change_protection', [
             'json' => [
                 'delete' => $delete,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
         return null;
     }
 
-    /**
-     * @param  $data
-     * @return $this
-     */
-    private function setAdditionalData($data)
+    private function setAdditionalData($data): static
     {
         $this->name = $data->name;
         $this->ip_range = $data->ip_range;
-        $this->ipRange = $data->ip_range;
         $this->subnets = Subnet::parse($data->subnets, $this->httpClient);
         $this->routes = Route::parse($data->routes, $this->httpClient);
         $this->servers = collect($data->servers)
             ->map(function ($id) {
-                return new Server($id);
+                return new ServerReference($id);
             })->toArray();
         $this->protection = Protection::parse($data->protection);
 
@@ -238,39 +168,49 @@ class Network extends Model implements Resource
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return static
-     */
     public static function parse($input): null|static
     {
-        return (new self($input->id))->setAdditionalData($input);
+        return (new self(id: $input->id))->setAdditionalData($input);
     }
 
-    public function reload()
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->networks()->get($this->id);
     }
 
-    public function delete()
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('networks/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('networks/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
+        return null;
     }
 
-    public function update(array $data)
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
+    public function update(array $data): ?APIResponse
     {
-        $response = $this->httpClient->put('networks/'.$this->id, [
+        $response = $this->httpClient->put('networks/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'network' => Server::parse(json_decode((string) $response->getBody())->network),
+                'network' => Server::parse(json_decode((string)$response->getBody())->network),
             ], $response->getHeaders());
         }
+        return null;
     }
 }

@@ -10,74 +10,38 @@
 namespace LKDev\HetznerCloud\Models\Volumes;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Locations\Location;
-use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Protection;
 use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
 /**
  * Class Volume.
  */
-class Volume extends Model implements Resource
+class Volume extends VolumeReference implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
+    public string $name;
+    public int $size;
+    public Server|int $server;
+    public Location $location;
+    public Protection|null $protection;
+    public array $labels;
+    public string $linux_device;
 
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var int
-     */
-    public $size;
-
-    /**
-     * @var Server
-     */
-    public $server;
-
-    /**
-     * @var Location
-     */
-    public $location;
-    /**
-     * @var Protection
-     */
-    public $protection;
-
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * @var string
-     */
-    public $linux_device;
-
-    /**
-     * @param  int  $volumeId
-     * @param  Client|null  $httpClient
-     */
-    public function __construct(?int $volumeId = null, ?Client $httpClient = null)
+    public function __construct(
+        ?int    $id = null,
+        ?Client $httpClient = null)
     {
-        $this->id = $volumeId;
-        parent::__construct($httpClient);
+        parent::__construct(id: $id, httpClient: $httpClient);
     }
 
-    /**
-     * @param  $data
-     * @return Volume
-     */
-    public function setAdditionalData($data)
+    public function setAdditionalData($data): static
     {
         $this->id = $data->id;
         $this->name = $data->name;
@@ -86,7 +50,7 @@ class Volume extends Model implements Resource
 
         $this->server = $data->server;
         $this->location = Location::parse($data->location);
-        $this->protection = $data->protection ?: Protection::parse($data->protection);
+        $this->protection = Protection::parse($data?->protection);
         $this->labels = get_object_vars($data->labels);
 
         return $this;
@@ -94,17 +58,14 @@ class Volume extends Model implements Resource
 
     /**
      * Deletes a volume. This immediately removes the volume from your account, and it is no longer accessible.
-     *
      * @see https://docs.hetzner.cloud/#resources-servers-delete
-     *
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
+     * @throws GuzzleException
      */
-    public function delete(): ?APIResponse
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('volumes/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('volumes/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([], $response->getHeaders());
         }
 
@@ -112,15 +73,11 @@ class Volume extends Model implements Resource
     }
 
     /**
-     * @param  Server  $server
-     * @param  bool|null  $automount
-     * @return APIResponse|null
-     *
+     * @throws APIException
+     * @throws GuzzleException
      * @see https://docs.hetzner.cloud/#volume-actions-attach-volume-to-a-server
-     *
-     * @throws \LKDev\HetznerCloud\APIException
      */
-    public function attach(Server $server, $automount = null): ?APIResponse
+    public function attach(ServerReference $server, bool $automount = null): ?APIResponse
     {
         $payload = [
             'server' => $server->id,
@@ -129,13 +86,13 @@ class Volume extends Model implements Resource
             $payload['automount'] = $automount;
         }
 
-        $response = $this->httpClient->post('volumes/'.$this->id.'/actions/attach', [
+        $response = $this->httpClient->post('volumes/' . $this->id . '/actions/attach', [
             'json' => $payload,
         ]);
 
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -143,18 +100,15 @@ class Volume extends Model implements Resource
     }
 
     /**
-     * @return APIResponse|null
-     *
      * @see https://docs.hetzner.cloud/#volume-actions-detach-volume
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function detach(): ?APIResponse
     {
-        $response = $this->httpClient->post('volumes/'.$this->id.'/actions/detach');
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->post('volumes/' . $this->id . '/actions/detach');
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -162,23 +116,19 @@ class Volume extends Model implements Resource
     }
 
     /**
-     * @param  int  $size
-     * @return APIResponse|null
-     *
      * @see https://docs.hetzner.cloud/#volume-actions-resize-volume
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function resize(int $size): ?APIResponse
     {
-        $response = $this->httpClient->post('volumes/'.$this->id.'/actions/resize', [
+        $response = $this->httpClient->post('volumes/' . $this->id . '/actions/resize', [
             'json' => [
                 'size' => $size,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -187,22 +137,17 @@ class Volume extends Model implements Resource
 
     /**
      * Update a volume with new meta data.
-     *
      * @see https://docs.hetzner.cloud/#resources-volume-put
-     *
-     * @param  array  $data
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function update(array $data): ?APIResponse
     {
-        $response = $this->httpClient->put('volumes/'.$this->id, [
+        $response = $this->httpClient->put('volumes/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'volume' => self::parse(json_decode((string) $response->getBody())->volume),
+                'volume' => self::parse(json_decode((string)$response->getBody())->volume),
             ], $response->getHeaders());
         }
 
@@ -211,34 +156,25 @@ class Volume extends Model implements Resource
 
     /**
      * Changes the protection configuration of the volume.
-     *
      * @see https://docs.hetzner.cloud/#volume-actions-change-volume-protection
-     *
-     * @param  bool  $delete
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function changeProtection(bool $delete = true): ?APIResponse
     {
-        $response = $this->httpClient->post('volumes/'.$this->id.'/actions/change_protection', [
+        $response = $this->httpClient->post('volumes/' . $this->id . '/actions/change_protection', [
             'json' => [
                 'delete' => $delete,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return Volume|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {
@@ -249,13 +185,10 @@ class Volume extends Model implements Resource
     }
 
     /**
-     * Reload the data of the volume.
-     *
-     * @return Volume
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
+     * @throws GuzzleException
      */
-    public function reload()
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->volumes()->get($this->id);
     }

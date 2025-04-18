@@ -5,22 +5,15 @@ namespace LKDev\HetznerCloud\Models;
 use GuzzleHttp\Client;
 use LKDev\HetznerCloud\Clients\GuzzleClient;
 use LKDev\HetznerCloud\HetznerAPIClient;
+use stdClass;
 
 abstract class Model
 {
-    protected GuzzleClient|Client $httpClient;
 
-    /**
-     * Model constructor.
-     *
-     * @param Client|GuzzleClient|null $httpClient
-     */
-    public function __construct(Client|GuzzleClient|null $httpClient = null)
+    public function __construct(protected Client|GuzzleClient|null $httpClient = null)
     {
-        if ($httpClient !== null) {
-            $this->setHttpClient($httpClient);
-        } else {
-            $this->setHttpClient(HetznerAPIClient::$instance->getHttpClient());
+        if ($this->httpClient === null) {
+            $this->httpClient = HetznerAPIClient::$instance->getHttpClient();
         }
     }
 
@@ -29,7 +22,7 @@ abstract class Model
         $this->httpClient = $httpClient;
     }
 
-    public static function parse($input): null|static
+    public static function parse(null|array|stdClass $input): null|static|array
     {
         return null;
     }

@@ -9,118 +9,63 @@
 
 namespace LKDev\HetznerCloud\Models\Locations;
 
+use BadMethodCallException;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
-use LKDev\HetznerCloud\Models\Model;
 
-class Location extends Model implements Resource
+class Location extends LocationReference implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $description;
-
-    /**
-     * @var string
-     */
-    public $country;
-
-    /**
-     * @var string
-     */
-    public $city;
-
-    /**
-     * @var float
-     */
-    public $latitude;
-
-    /**
-     * @var float
-     */
-    public $longitude;
-
-    /**
-     * @var string
-     */
-    public $network_zone;
-    /**
-     * @var string
-     *
-     * @deprecated Use $network_zone instead
-     */
-    public $networkZone;
-
-    /**
-     * Location constructor.
-     *
-     * @param  int  $id
-     * @param  string  $name
-     * @param  string  $description
-     * @param  string  $country
-     * @param  string  $city
-     * @param  float  $latitude
-     * @param  float  $longitude
-     * @param  string  $networkZone
-     */
     public function __construct(
-        int $id,
-        string $name,
-        ?string $description = null,
-        ?string $country = null,
-        ?string $city = null,
-        ?float $latitude = null,
-        ?float $longitude = null,
-        ?string $networkZone = null
-    ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->description = $description;
-        $this->country = $country;
-        $this->city = $city;
-        $this->latitude = $latitude;
-        $this->longitude = $longitude;
-        $this->network_zone = $networkZone;
-        $this->networkZone = $networkZone;
-        parent::__construct();
+        int     $id,
+        string  $name,
+        public ?string $description = null,
+        public ?string $country = null,
+        public ?string $city = null,
+        public ?float  $latitude = null,
+        public ?float  $longitude = null,
+        public ?string $network_zone = null
+    )
+    {
+        parent::__construct(id: $id, name: $name);
     }
 
-    /**
-     * @param  $input
-     * @return Location|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {
             return null;
         }
-        $networkZone = property_exists($input, 'network_zone') ? $input->network_zone : null;
+        $network_zone = property_exists($input, 'network_zone') ? $input->network_zone : null;
 
-        return new self($input->id, $input->name, $input->description, $input->country, $input->city, $input->latitude, $input->longitude, $networkZone);
+        return new self(
+            id: $input->id,
+            name: $input->name,
+            description: $input->description,
+            country: $input->country,
+            city: $input->city,
+            latitude: $input->latitude,
+            longitude: $input->longitude,
+            network_zone: $network_zone
+        );
     }
 
-    public function reload()
+    /**
+     * @throws GuzzleException|APIException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->locations()->get($this->id);
     }
 
-    public function delete()
+    public function delete(): APIResponse|bool|null
     {
-        throw new \BadMethodCallException('delete on location is not possible');
+        throw new BadMethodCallException('delete on location is not possible');
     }
 
     public function update(array $data)
     {
-        throw new \BadMethodCallException('update on location is not possible');
+        throw new BadMethodCallException('update on location is not possible');
     }
 }

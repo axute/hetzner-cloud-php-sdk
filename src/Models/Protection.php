@@ -10,42 +10,23 @@
 namespace LKDev\HetznerCloud\Models;
 
 // This is a read only model, that does not have any logic. Just a stupid dataholder.
+use stdClass;
+
 class Protection extends Model
 {
-    /**
-     * @var bool
-     */
-    public $delete;
 
-    /**
-     * @var bool
-     */
-    public $rebuild;
-
-    /**
-     * Protection constructor.
-     *
-     * @param  bool  $delete
-     * @param  bool  $rebuild
-     */
-    public function __construct(bool $delete, ?bool $rebuild = null)
+    public function __construct(public bool $delete = false, public bool $rebuild = false)
     {
-        $this->delete = $delete;
-        $this->rebuild = $rebuild;
         // Force getting the default http client
-        parent::__construct(null);
+        parent::__construct();
     }
 
-    /**
-     * @param  $input
-     * @return Protection|null|static
-     */
-    public static function parse($input): null|static
+    public static function parse(null|array|stdClass $input): null|static
     {
         if ($input == null) {
             return null;
         }
 
-        return new self($input->delete, property_exists($input, 'rebuild') ? $input->rebuild : null);
+        return new self($input->delete ?: false, $input->rebuild ?? false);
     }
 }

@@ -9,94 +9,57 @@
 
 namespace LKDev\HetznerCloud\Models\Datacenters;
 
+use BadMethodCallException;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
+use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Locations\Location;
 use LKDev\HetznerCloud\Models\Model;
+use stdClass;
 
 class Datacenter extends Model implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $description;
-
-    /**
-     * @var Location
-     */
-    public $location;
-
-    /**
-     * @var array
-     */
-    public $server_types;
-    /**
-     * @var array
-     *
-     * @deprecated Use $server_types instead
-     */
-    public $serverTypes;
-
-    /**
-     * Datacenter constructor.
-     *
-     * @param  int  $id
-     * @param  string  $name
-     * @param  string  $description
-     * @param Location $location
-     * @param  array  $server_types
-     */
     public function __construct(
-        int $id,
-        string $name,
-        string $description,
-        Location $location,
-        $server_types = null
-    ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->description = $description;
-        $this->location = $location;
-        $this->server_types = $server_types;
-        $this->serverTypes = $server_types;
+        public int            $id,
+        public string         $name,
+        public string         $description,
+        public Location       $location,
+        public stdClass|array $server_types = []
+    )
+    {
         parent::__construct();
     }
 
-    /**
-     * @param  $input
-     * @return Datacenter|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {
             return null;
         }
 
-        return new self($input->id, $input->name, $input->description, Location::parse($input->location), $input->server_types);
+        return new self(id: $input->id,
+            name: $input->name,
+            description: $input->description,
+            location: Location::parse($input->location),
+            server_types: $input->server_types);
     }
 
-    public function reload()
+    /**
+     * @throws GuzzleException|APIException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->datacenters()->get($this->id);
     }
 
-    public function delete()
+    public function delete(): APIResponse|bool|null
     {
-        throw new \BadMethodCallException('delete on datacenter is not possible');
+        throw new BadMethodCallException('delete on datacenter is not possible');
     }
 
     public function update(array $data)
     {
-        throw new \BadMethodCallException('update on datacenter is not possible');
+        throw new BadMethodCallException('update on datacenter is not possible');
     }
 }

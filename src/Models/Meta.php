@@ -9,26 +9,11 @@ namespace LKDev\HetznerCloud\Models;
  */
 class Meta extends Model
 {
-    /**
-     * @var Pagination
-     */
-    public $pagination;
-
-    /**
-     * Meta constructor.
-     *
-     * @param  Pagination  $pagination
-     */
-    public function __construct(Pagination $pagination)
+    public function __construct(public Pagination $pagination)
     {
-        $this->pagination = $pagination;
-        parent::__construct(null);
+        parent::__construct();
     }
 
-    /**
-     * @param  $input
-     * @return Meta|null|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {

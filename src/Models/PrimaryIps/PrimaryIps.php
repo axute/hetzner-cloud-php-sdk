@@ -2,6 +2,8 @@
 
 namespace LKDev\HetznerCloud\Models\PrimaryIps;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -15,22 +17,14 @@ class PrimaryIps extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $primary_ips;
+    protected array $primary_ips;
 
     /**
      * Returns all primary ip objects.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-get-all-primary-ips
-     *
-     * @param  PrimaryIPRequestOpts|RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
-    public function all(?RequestOpts $requestOpts = null): array
+    public function all(PrimaryIPRequestOpts|RequestOpts|null $requestOpts = null): array
     {
         if ($requestOpts == null) {
             $requestOpts = new PrimaryIPRequestOpts();
@@ -41,15 +35,10 @@ class PrimaryIps extends Model implements Resources
 
     /**
      * Returns all primary ip objects.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-get-all-primary-ips
-     *
-     * @param  PrimaryIPRequestOpts|RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function list(?RequestOpts $requestOpts = null): ?APIResponse
+    public function list(PrimaryIPRequestOpts|RequestOpts|null $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new PrimaryIPRequestOpts();
@@ -69,13 +58,8 @@ class PrimaryIps extends Model implements Resources
 
     /**
      * Returns a specific Primary IP object.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-get-a-primary-ip
-     *
-     * @param  int  $id
-     * @return PrimaryIp|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getById(int $id): ?PrimaryIp
     {
@@ -89,16 +73,13 @@ class PrimaryIps extends Model implements Resources
 
     /**
      * Returns a specific Primary IP object by its name.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-get-a-primary-ip
-     *
-     * @param  string  $name
-     * @return PrimaryIp
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
+     * @throws GuzzleException
      */
     public function getByName(string $name): ?PrimaryIp
     {
+        /** @var PrimaryIps $resp */
         $resp = $this->list(new PrimaryIPRequestOpts($name));
 
         return (count($resp->primary_ips) > 0) ? $resp->primary_ips[0] : null;
@@ -106,18 +87,8 @@ class PrimaryIps extends Model implements Resources
 
     /**
      * Creates a new Primary IP, optionally assigned to a Server.
-     *
      * @see https://docs.hetzner.cloud/#primary-ips-create-a-primary-ip
-     *
-     * @param  string  $type
-     * @param  string  $name
-     * @param  string  $assigneeType
-     * @param  int|null  $assigneeId
-     * @param Datacenter|null  $datacenter
-     * @param  array  $labels
-     * @return PrimaryIp|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function create(
         string $type,
@@ -153,31 +124,20 @@ class PrimaryIps extends Model implements Resources
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input):static
     {
-        $this->primary_ips = collect($input)->map(function ($primaryIp, $key) {
+        $this->primary_ips = collect($input)->map(function ($primaryIp) {
             return PrimaryIp::parse($primaryIp);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
         return ['one' => 'primary_ip', 'many' => 'primary_ips'];

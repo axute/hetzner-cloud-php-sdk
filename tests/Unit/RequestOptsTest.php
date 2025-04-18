@@ -2,12 +2,13 @@
 
 namespace LKDev\Tests\Unit;
 
+use InvalidArgumentException;
 use LKDev\HetznerCloud\RequestOpts;
 use LKDev\Tests\TestCase;
 
 class RequestOptsTest extends TestCase
 {
-    public function buildQueryTestProvider()
+    public function buildQueryTestProvider(): array
     {
         return [
             [
@@ -47,7 +48,7 @@ class RequestOptsTest extends TestCase
      */
     public function createRequestOptsWithGreaterPerPageThanLimitShouldThrowAnError()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         new RequestOpts(100);
     }
 }

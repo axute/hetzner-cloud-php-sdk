@@ -7,18 +7,17 @@
  * Time: 18:31.
  */
 
-namespace LKDev\Tests\Unit\Pricing;
+namespace LKDev\Tests\Unit\Models\Pricing;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\Prices\Prices;
 use LKDev\Tests\TestCase;
 
 class PricingTest extends TestCase
 {
-    /**
-     * @var \LKDev\HetznerCloud\Models\Prices\Prices
-     */
-    protected $prices;
+    protected Prices $prices;
 
     public function setUp(): void
     {
@@ -26,6 +25,10 @@ class PricingTest extends TestCase
         $this->prices = new Prices($this->hetznerApi->getHttpClient());
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function testAll()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/pricing.json')));

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 /**
  * Created by PhpStorm.
@@ -9,203 +9,41 @@
 
 namespace LKDev\HetznerCloud\Models\Images;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
-use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Protection;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
-class Image extends Model implements Resource
+class Image extends ImageReference implements Resource
 {
-    const TYPE_SYSTEM = 'system';
-    const TYPE_SNAPSHOT = 'snapshot';
-    const TYPE_BACKUP = 'backup';
+    const string TYPE_SYSTEM = 'system';
+    const string TYPE_SNAPSHOT = 'snapshot';
+    const string TYPE_BACKUP = 'backup';
 
-    /**
-     * @var int
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $type;
-
-    /**
-     * @var string
-     */
-    public $status;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $description;
-
-    /**
-     * @var float
-     */
-    public $image_size;
-    /**
-     * @var float
-     *
-     * @deprecated Use $image_size instead
-     */
-    public $imageSize;
-
-    /**
-     * @var int
-     */
-    public $disk_size;
-    /**
-     * @var int
-     *
-     * @deprecated Use $disk_size instead
-     */
-    public $diskSize;
-
-    /**
-     * @var string
-     */
-    public $created;
-
-    /**
-     * @var \LKDev\HetznerCloud\Models\Servers\Server
-     */
-    public $created_from;
-    /**
-     * @var \LKDev\HetznerCloud\Models\Servers\Server
-     *
-     * @deprecated Use $created_from instead
-     */
-    public $createdFrom;
-
-    /**
-     * @var int
-     */
-    public $bound_to;
-    /**
-     * @var int
-     *
-     * @deprecated Use $bound_to instead
-     */
-    public $boundTo;
-
-    /**
-     * @var string
-     */
-    public $os_flavor;
-    /**
-     * @var string
-     *
-     * @deprecated Use $os_flavor instead
-     */
-    public $osFlavor;
-
-    /**
-     * @var string
-     */
-    public $os_version;
-    /**
-     * @var string
-     *
-     * @deprecated Use $os_version instead
-     */
-    public $osVersion;
-
-    /**
-     * @var bool
-     */
-    public $rapid_deploy;
-    /**
-     * @var bool
-     *
-     * @deprecated Use $rapid_deploy instead
-     */
-    public $rapidDeploy;
-
-    /**
-     * @var array|Protection
-     */
-    public $protection;
-
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * @var string
-     */
-    public $architecture;
-
-    /**
-     * Image constructor.
-     *
-     * @param  int  $id
-     * @param  string  $type
-     * @param  string  $status
-     * @param  string  $name
-     * @param  string  $description
-     * @param  float  $imageSize
-     * @param  int  $diskSize
-     * @param  string  $created
-     * @param  \LKDev\HetznerCloud\Models\Servers\Server  $createdFrom
-     * @param  int  $boundTo
-     * @param  string  $osFlavor
-     * @param  string  $osVersion
-     * @param  bool  $rapidDeploy
-     * @param  Protection  $protection
-     * @param  string  $architecture
-     * @param  array  $labels
-     */
     public function __construct(
-        int $id,
-        ?string $type = null,
-        ?string $status = null,
-        ?string $name = null,
-        ?string $description = null,
-        ?float $imageSize = null,
-        ?int $diskSize = null,
-        ?string $created = null,
-        $createdFrom = null,
-        ?int $boundTo = null,
-        ?string $osFlavor = null,
-        ?string $osVersion = null,
-        ?bool $rapidDeploy = null,
-        ?Protection $protection = null,
-        ?string $architecture = null,
-        array $labels = []
-    ) {
-        $this->id = $id;
-        $this->type = $type;
-        $this->status = $status;
-        $this->name = $name;
-        $this->description = $description;
-        $this->image_size = $imageSize;
-        $this->imageSize = $imageSize;
-        $this->disk_size = $diskSize;
-        $this->diskSize = $diskSize;
-        $this->created = $created;
-        $this->created_from = $createdFrom;
-        $this->createdFrom = $createdFrom;
-        $this->bound_to = $boundTo;
-        $this->boundTo = $boundTo;
-        $this->os_flavor = $osFlavor;
-        $this->osFlavor = $osFlavor;
-        $this->os_version = $osVersion;
-        $this->osVersion = $osVersion;
-        $this->rapid_deploy = $rapidDeploy;
-        $this->rapidDeploy = $rapidDeploy;
-        $this->protection = $protection;
-        $this->architecture = $architecture;
-        $this->labels = $labels;
-        parent::__construct();
+        int                    $id,
+        public string          $type,
+        public string          $status,
+        ?string                $name,
+        public string          $description,
+        public ?float          $image_size,
+        public int             $disk_size,
+        public string          $created,
+        public ServerReference $created_from,
+        public string          $os_flavor,
+        public ?int            $bound_to = null,
+        public ?string         $os_version = null,
+        public bool            $rapid_deploy = false,
+        public Protection      $protection = new Protection(false),
+        public ?string         $architecture = null,
+        public array           $labels = []
+    )
+    {
+        parent::__construct($id, $name);
     }
 
     /**
@@ -213,18 +51,16 @@ class Image extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#resources-images-put
      *
-     * @param  array  $data
-     * @return Image
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function update(array $data): ?self
     {
-        $response = $this->httpClient->put('images/'.$this->id, [
+        $response = $this->httpClient->put('images/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            return self::parse(json_decode((string) $response->getBody())->image);
+        if (!HetznerAPIClient::hasError($response)) {
+            return self::parse(json_decode((string)$response->getBody())->image);
         }
 
         return null;
@@ -235,21 +71,18 @@ class Image extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#image-actions-change-image-protection
      *
-     * @param  bool  $delete
-     * @return APIResponse
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function changeProtection(bool $delete = true): ?APIResponse
     {
-        $response = $this->httpClient->post('images/'.$this->id.'/actions/change_protection', [
+        $response = $this->httpClient->post('images/' . $this->id . '/actions/change_protection', [
             'json' => [
                 'delete' => $delete,
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
 
@@ -261,34 +94,47 @@ class Image extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#resources-images-delete
      *
-     * @return bool
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function delete(): bool
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('images/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('images/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return true;
         }
 
         return false;
     }
 
-    /**
-     * @param  $input
-     * @return Model|null
-     */
     public static function parse($input): ?static
     {
         if ($input == null) {
             return null;
         }
 
-        return new self($input->id, $input->type, property_exists($input, 'status') ? $input->status : null, $input->name, $input->description, $input->image_size, $input->disk_size, $input->created, $input->created_from, $input->bound_to, $input->os_flavor, $input->os_version, $input->rapid_deploy, Protection::parse($input->protection), $input->architecture, get_object_vars($input->labels));
+        return new self(
+            id: $input->id,
+            type: $input->type,
+            status: $input->status ?: null,
+            name: $input->name,
+            description: $input->description,
+            image_size: $input->image_size,
+            disk_size: $input->disk_size,
+            created: $input->created,
+            created_from: new ServerReference($input->created_from->id),
+            os_flavor: $input->os_flavor,
+            bound_to: $input->bound_to,
+            os_version: $input->os_version,
+            rapid_deploy: $input->rapid_deploy,
+            protection: Protection::parse($input->protection),
+            architecture: $input->architecture,
+            labels: get_object_vars($input->labels));
     }
 
-    public function reload()
+    /**
+     * @throws GuzzleException|APIException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->images()->get($this->id);
     }

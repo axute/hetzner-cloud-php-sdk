@@ -3,33 +3,19 @@
 namespace LKDev\HetznerCloud\Models\Firewalls;
 
 use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
 /**
  * Class FirewallResource.
  */
 class FirewallResource
 {
-    const TYPE_SERVER = 'server';
+    const string TYPE_SERVER = 'server';
 
-    /**
-     * @var string
-     */
-    public $type;
-    /**
-     * @var ?Server
-     */
-    public $server;
-
-    /**
-     * FirewallResource constructor.
-     *
-     * @param  string  $type
-     * @param  Server|null  $server
-     */
-    public function __construct(string $type, ?Server $server)
+    public function __construct(
+        public string  $type,
+        public ?ServerReference $server)
     {
-        $this->type = $type;
-        $this->server = $server;
     }
 
     /**

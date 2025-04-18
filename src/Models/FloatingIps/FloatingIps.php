@@ -9,13 +9,17 @@
 
 namespace LKDev\HetznerCloud\Models\FloatingIps;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
 use LKDev\HetznerCloud\Models\Locations\Location;
+use LKDev\HetznerCloud\Models\Locations\LocationReference;
 use LKDev\HetznerCloud\Models\Meta;
 use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 use LKDev\HetznerCloud\RequestOpts;
 use LKDev\HetznerCloud\Traits\GetFunctionTrait;
 
@@ -23,22 +27,14 @@ class FloatingIps extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $floating_ips;
+    protected array $floating_ips;
 
     /**
      * Returns all floating ip objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get
-     *
-     * @param  FloatingIPRequestOpts|RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
-    public function all(?RequestOpts $requestOpts = null): array
+    public function all(FloatingIPRequestOpts|RequestOpts|null $requestOpts = null): array
     {
         if ($requestOpts == null) {
             $requestOpts = new FloatingIPRequestOpts();
@@ -49,15 +45,10 @@ class FloatingIps extends Model implements Resources
 
     /**
      * Returns all floating ip objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get
-     *
-     * @param  FloatingIPRequestOpts|RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function list(?RequestOpts $requestOpts = null): ?APIResponse
+    public function list(FloatingIPRequestOpts|RequestOpts|null $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new FloatingIPRequestOpts();
@@ -77,17 +68,12 @@ class FloatingIps extends Model implements Resources
 
     /**
      * Returns a specific floating ip object.
-     *
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get-1
-     *
-     * @param  int  $locationId
-     * @return FloatingIp|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function getById(int $floatingIpId): ?FloatingIp
+    public function getById(int $id): ?FloatingIp
     {
-        $response = $this->httpClient->get('floating_ips/'.$floatingIpId);
+        $response = $this->httpClient->get('floating_ips/'.$id);
         if (! HetznerAPIClient::hasError($response)) {
             return FloatingIp::parse(json_decode((string) $response->getBody())->{$this->_getKeys()['one']});
         }
@@ -97,16 +83,12 @@ class FloatingIps extends Model implements Resources
 
     /**
      * Returns a specific Floating IP object by its name.
-     *
      * @see https://docs.hetzner.cloud/#resources-floating-ips-get-1
-     *
-     * @param  string  $name
-     * @return FloatingIp
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?FloatingIp
     {
+        /** @var FloatingIps $resp */
         $resp = $this->list(new FloatingIPRequestOpts($name));
 
         return (count($resp->floating_ips) > 0) ? $resp->floating_ips[0] : null;
@@ -114,24 +96,14 @@ class FloatingIps extends Model implements Resources
 
     /**
      * Creates a new Floating IP assigned to a server.
-     *
      * @see https://docs.hetzner.cloud/#resources-floating-ips-post
-     *
-     * @param  string  $type
-     * @param  string|null  $description
-     * @param Location|null  $location
-     * @param Server|null  $server
-     * @param  string|null  $name
-     * @param  array  $labels
-     * @return FloatingIp|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function create(
         string $type,
         ?string $description = null,
-        ?Location $location = null,
-        ?Server $server = null,
+        ?LocationReference $location = null,
+        ?ServerReference $server = null,
         ?string $name = null,
         array $labels = []
     ): ?FloatingIp {
@@ -163,31 +135,20 @@ class FloatingIps extends Model implements Resources
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input):static
     {
-        $this->floating_ips = collect($input)->map(function ($floatingIp, $key) {
+        $this->floating_ips = collect($input)->map(function ($floatingIp) {
             return FloatingIp::parse($floatingIp);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
         return ['one' => 'floating_ip', 'many' => 'floating_ips'];

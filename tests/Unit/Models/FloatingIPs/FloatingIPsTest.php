@@ -9,18 +9,17 @@
 
 namespace LKDev\Tests\Unit\Models\FloatingIPs;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\FloatingIps\FloatingIps;
-use LKDev\HetznerCloud\Models\Locations\Location;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Locations\LocationReference;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 use LKDev\Tests\TestCase;
 
 class FloatingIPsTest extends TestCase
 {
-    /**
-     * @var FloatingIps
-     */
-    protected $floatingIps;
+    protected FloatingIps $floatingIps;
 
     public function setUp(): void
     {
@@ -28,96 +27,124 @@ class FloatingIPsTest extends TestCase
         $this->floatingIps = new FloatingIps($this->hetznerApi->getHttpClient());
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testGet()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIP.json')));
         $floatingIp = $this->floatingIps->get(1);
-        $this->assertEquals($floatingIp->id, 4711);
-        $this->assertEquals($floatingIp->description, 'Web Frontend');
+        $this->assertEquals(4711, $floatingIp->id);
+        $this->assertEquals('Web Frontend', $floatingIp->description);
         $this->assertLastRequestEquals('GET', '/floating_ips/1');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testGetByName()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIPs.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIPs.json')));
         $floatingIp = $this->floatingIps->getByName('Web Frontend');
-        $this->assertEquals($floatingIp->id, 4711);
-        $this->assertEquals($floatingIp->name, 'Web Frontend');
+        $this->assertEquals(4711, $floatingIp->id);
+        $this->assertEquals('Web Frontend', $floatingIp->name);
 
         $this->assertLastRequestQueryParametersContains('name', 'Web Frontend');
         $this->assertLastRequestEquals('GET', '/floating_ips');
     }
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function testAll()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIPs.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIPs.json')));
         $floatingIps = $this->floatingIps->all();
 
-        $this->assertEquals(count($floatingIps), 1);
-        $this->assertEquals($floatingIps[0]->id, 4711);
-        $this->assertEquals($floatingIps[0]->description, 'Web Frontend');
-        $this->assertLastRequestEquals('GET', '/floating_ips');
-    }
-
-    public function testList()
-    {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIPs.json')));
-        $floatingIps = $this->floatingIps->list()->floating_ips;
-
-        $this->assertEquals(count($floatingIps), 1);
-        $this->assertEquals($floatingIps[0]->id, 4711);
-        $this->assertEquals($floatingIps[0]->description, 'Web Frontend');
+        $this->assertCount(1, $floatingIps);
+        $this->assertEquals(4711, $floatingIps[0]->id);
+        $this->assertEquals('Web Frontend', $floatingIps[0]->description);
         $this->assertLastRequestEquals('GET', '/floating_ips');
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function testList()
+    {
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIPs.json')));
+        /** @noinspection PhpUndefinedFieldInspection */
+        $floatingIps = $this->floatingIps->list()->floating_ips;
+
+        $this->assertCount(1, $floatingIps);
+        $this->assertEquals(4711, $floatingIps[0]->id);
+        $this->assertEquals('Web Frontend', $floatingIps[0]->description);
+        $this->assertLastRequestEquals('GET', '/floating_ips');
+    }
+
+    /**
+     * @throws APIException|GuzzleException
      */
     public function testCreateWithLocation()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
-        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', new Location(123, 'nbg1'), null, 'my-fip', ['key' => 'value']);
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIP.json')));
+        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', new LocationReference(id: 123, name: 'nbg1'), null, 'my-fip', ['key' => 'value']);
 
-        $this->assertEquals($floatingIp->id, 4711);
-        $this->assertEquals($floatingIp->description, 'Web Frontend');
+        $this->assertEquals(4711, $floatingIp->id);
+        $this->assertEquals('Web Frontend', $floatingIp->description);
         $this->assertLastRequestEquals('POST', '/floating_ips');
-        $this->assertLastRequestBodyParametersEqual(['type' => 'ipv4', 'description' => 'Web Frontend', 'home_location' => 'nbg1', 'name' => 'my-fip', 'labels' => ['key' => 'value']]);
+        $this->assertLastRequestBodyParametersEqual(['type'          => 'ipv4',
+                                                     'description'   => 'Web Frontend',
+                                                     'home_location' => 'nbg1',
+                                                     'name'          => 'my-fip',
+                                                     'labels'        => ['key' => 'value']
+        ]);
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testCreateWithServer()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
-        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', null, new Server(23));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIP.json')));
+        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', null, new ServerReference(id: 23));
 
-        $this->assertEquals($floatingIp->id, 4711);
-        $this->assertEquals($floatingIp->description, 'Web Frontend');
+        $this->assertEquals(4711, $floatingIp->id);
+        $this->assertEquals('Web Frontend', $floatingIp->description);
         $this->assertLastRequestEquals('POST', '/floating_ips');
-        $this->assertLastRequestBodyParametersEqual(['type' => 'ipv4', 'description' => 'Web Frontend', 'server' => 23]);
+        $this->assertLastRequestBodyParametersEqual(['type'        => 'ipv4',
+                                                     'description' => 'Web Frontend',
+                                                     'server'      => 23
+        ]);
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testCreateWithName()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
-        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', new Location(123, 'nbg1'), null, 'WebServer');
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIP.json')));
+        $floatingIp = $this->floatingIps->create('ipv4', 'Web Frontend', new LocationReference(id: 123, name: 'nbg1'), null, 'WebServer');
 
-        $this->assertEquals($floatingIp->id, 4711);
-        $this->assertEquals($floatingIp->description, 'Web Frontend');
+        $this->assertEquals(4711, $floatingIp->id);
+        $this->assertEquals('Web Frontend', $floatingIp->description);
         $this->assertLastRequestEquals('POST', '/floating_ips');
-        $this->assertLastRequestBodyParametersEqual(['type' => 'ipv4', 'description' => 'Web Frontend', 'home_location' => 'nbg1']);
+        $this->assertLastRequestBodyParametersEqual(['type'          => 'ipv4',
+                                                     'description'   => 'Web Frontend',
+                                                     'home_location' => 'nbg1'
+        ]);
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testDelete()
     {
-        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP.json')));
+        $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__ . '/fixtures/floatingIP.json')));
         $floatingIp = $this->floatingIps->get(4711);
         $this->assertLastRequestEquals('GET', '/floating_ips/4711');
 

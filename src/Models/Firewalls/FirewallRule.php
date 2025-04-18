@@ -2,9 +2,6 @@
 
 namespace LKDev\HetznerCloud\Models\Firewalls;
 
-/**
- * Class FirewallRule.
- */
 class FirewallRule
 {
     const string DIRECTION_IN = 'in';
@@ -16,60 +13,31 @@ class FirewallRule
     const string PROTOCOL_UDP = 'udp';
 
     const string PROTOCOL_ICMP = 'icmp';
-    /**
-     * @var string
-     */
-    public string $direction;
-    /**
-     * @var array<string>
-     */
-    public array $sourceIPs;
-    /**
-     * @var array<string>
-     */
-    public array $destinationIPs;
-    /**
-     * @var string
-     */
-    public string $protocol;
-    /**
-     * @var string|null
-     */
-    public ?string $port;
-    public ?string $description;
 
     /**
      * FirewallRule constructor.
-     *
-     * @param string $direction
-     * @param string $protocol
-     * @param string[] $sourceIPs
-     * @param string[] $destinationIPs
-     * @param string|null $port
-     * @param string|null $description
+     * @param string[] $source_ips
+     * @param string[] $destination_ips
      */
-    public function __construct(string $direction, string $protocol, array $sourceIPs = [], array $destinationIPs = [], ?string $port = '', ?string $description = null)
+    public function __construct(
+        public string  $direction,
+        public string  $protocol,
+        public array   $source_ips = [],
+        public array   $destination_ips = [],
+        public ?string $port = '',
+        public ?string $description = null)
     {
-        $this->direction = $direction;
-        $this->sourceIPs = $sourceIPs;
-        $this->destinationIPs = $destinationIPs;
-        $this->protocol = $protocol;
-        $this->port = $port;
-        $this->description = $description;
     }
 
-    /**
-     * @return array
-     */
     public function toRequestSchema(): array
     {
         $s = [
-            'direction' => $this->direction,
-            'source_ips' => $this->sourceIPs,
-            'protocol' => $this->protocol,
+            'direction'  => $this->direction,
+            'source_ips' => $this->source_ips,
+            'protocol'   => $this->protocol,
         ];
-        if (! empty($this->destinationIPs)) {
-            $s['destination_ips'] = $this->destinationIPs;
+        if (!empty($this->destination_ips)) {
+            $s['destination_ips'] = $this->destination_ips;
         }
         if ($this->port != '') {
             $s['port'] = $this->port;

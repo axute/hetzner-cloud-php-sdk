@@ -27,51 +27,49 @@ class HetznerAPIClient
 {
     const string VERSION = '2.8.0';
     const int MAX_ENTITIES_PER_PAGE = 50;
-    protected string $apiToken;
-    protected string $baseUrl;
-    protected string $userAgent;
 
     /**
      * The default instance of the HTTP client, for easily getting it in the child models.
      */
     public static HetznerAPIClient $instance;
 
-    protected GuzzleClient $httpClient;
+    protected GuzzleClient|Client $httpClient;
 
-    public function __construct(string $apiToken, string $baseUrl = 'https://api.hetzner.cloud/v1/', string $userAgent = '')
+    public function __construct(
+        public string $api_token,
+        public string $base_url = 'https://api.hetzner.cloud/v1/',
+        public string $user_agent = ''
+    )
     {
-        $this->apiToken = $apiToken;
-        $this->baseUrl = $baseUrl;
-        $this->userAgent = $userAgent;
         $this->httpClient = new GuzzleClient($this);
         self::$instance = $this;
     }
 
     public function getUserAgent(): string
     {
-        return $this->userAgent;
+        return $this->user_agent;
     }
 
     public function getApiToken(): string
     {
-        return $this->apiToken;
+        return $this->api_token;
     }
 
     public function getBaseUrl(): string
     {
-        return $this->baseUrl;
+        return $this->base_url;
     }
 
-    public function setUserAgent(string $userAgent): self
+    public function setUserAgent(string $user_agent): self
     {
-        $this->userAgent = $userAgent;
+        $this->user_agent = $user_agent;
 
         return $this;
     }
 
-    public function setBaseUrl(string $baseUrl): self
+    public function setBaseUrl(string $base_url): self
     {
-        $this->baseUrl = $baseUrl;
+        $this->base_url = $base_url;
 
         return $this;
     }
@@ -93,7 +91,7 @@ class HetznerAPIClient
      */
     public static function throwError(ResponseInterface $response)
     {
-        $body = (string) $response->getBody();
+        $body = (string)$response->getBody();
         if (strlen($body) > 0) {
             $error = json_decode($body);
             throw new APIException(APIResponse::create([
@@ -110,8 +108,8 @@ class HetznerAPIClient
      */
     public static function hasError(ResponseInterface $response): bool
     {
-        $responseDecoded = json_decode((string) $response->getBody());
-        if (strlen((string) $response->getBody()) > 0) {
+        $responseDecoded = json_decode((string)$response->getBody());
+        if (strlen((string)$response->getBody()) > 0) {
             if (property_exists($responseDecoded, 'error')) {
                 self::throwError($response);
             }

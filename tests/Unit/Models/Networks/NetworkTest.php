@@ -2,8 +2,9 @@
 
 namespace LKDev\Tests\Unit\Models\Networks;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
-use LKDev\HetznerCloud\Models\Networks\Network;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\Networks\Networks;
 use LKDev\HetznerCloud\Models\Networks\Route;
 use LKDev\HetznerCloud\Models\Networks\Subnet;
@@ -11,11 +12,12 @@ use LKDev\Tests\TestCase;
 
 class NetworkTest extends TestCase
 {
-    /**
-     * @var Network
-     */
-    protected $network;
+    protected mixed $network;
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function setUp(): void
     {
         parent::setUp();
@@ -96,7 +98,7 @@ class NetworkTest extends TestCase
         $this->assertLastRequestBodyParametersEqual(['delete' => true]);
     }
 
-    protected function getGenericActionResponse(string $command)
+    protected function getGenericActionResponse(string $command): array|false|string
     {
         return str_replace('$command', $command, file_get_contents(__DIR__.'/fixtures/network_action_generic.json'));
     }

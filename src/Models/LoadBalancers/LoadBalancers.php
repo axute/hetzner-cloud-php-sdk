@@ -2,6 +2,8 @@
 
 namespace LKDev\HetznerCloud\Models\LoadBalancers;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -14,20 +16,12 @@ class LoadBalancers extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $load_balancers;
+    protected array $load_balancers;
 
     /**
      * Gets all existing Load Balancers that you have available.
-     *
      * @see https://docs.hetzner.cloud/#load-balancers-get-all-load-balancers
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -40,25 +34,20 @@ class LoadBalancers extends Model implements Resources
 
     /**
      * Gets all existing Load Balancers that you have available.
-     *
      * @see https://docs.hetzner.cloud/#load-balancers-get-all-load-balancers
-     *
-     * @param  RequestOpts|null  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new LoadBalancerRequestOpts();
         }
-        $response = $this->httpClient->get('load_balancers'.$requestOpts->buildQuery());
-        if (! HetznerAPIClient::hasError($response)) {
-            $resp = json_decode((string) $response->getBody());
+        $response = $this->httpClient->get('load_balancers' . $requestOpts->buildQuery());
+        if (!HetznerAPIClient::hasError($response)) {
+            $resp = json_decode((string)$response->getBody());
 
             return APIResponse::create([
-                'meta' => Meta::parse($resp->meta),
+                'meta'                    => Meta::parse($resp->meta),
                 $this->_getKeys()['many'] => self::parse($resp->{$this->_getKeys()['many']})->{$this->_getKeys()['many']},
             ], $response->getHeaders());
         }
@@ -68,19 +57,14 @@ class LoadBalancers extends Model implements Resources
 
     /**
      * Gets a specific Load Balancer object.
-     *
      * @see https://docs.hetzner.cloud/#load-balancers-get-a-load-balancer
-     *
-     * @param  int  $id
-     * @return LoadBalancer
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getById(int $id): ?LoadBalancer
     {
-        $response = $this->httpClient->get('load_balancers/'.$id);
-        if (! HetznerAPIClient::hasError($response)) {
-            return LoadBalancer::parse(json_decode((string) $response->getBody())->load_balancer);
+        $response = $this->httpClient->get('load_balancers/' . $id);
+        if (!HetznerAPIClient::hasError($response)) {
+            return LoadBalancer::parse(json_decode((string)$response->getBody())->load_balancer);
         }
 
         return null;
@@ -88,48 +72,35 @@ class LoadBalancers extends Model implements Resources
 
     /**
      * Gets a specific Load Balancer object.
-     *
      * @see https://docs.hetzner.cloud/#load-balancers-get-a-load-balancer
-     *
-     * @param  string  $name
-     * @return LoadBalancer
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?LoadBalancer
     {
+        /** @var LoadBalancers $loadBalancers */
         $loadBalancers = $this->list(new LoadBalancerRequestOpts($name));
 
         return (count($loadBalancers->load_balancers) > 0) ? $loadBalancers->load_balancers[0] : null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
-        $this->load_balancers = collect($input)->map(function ($loadBalancer, $key) {
+        $this->load_balancers = collect($input)->map(function ($loadBalancer) {
             return LoadBalancer::parse($loadBalancer);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
-        return ['one' => 'load_balancer', 'many' => 'load_balancers'];
+        return ['one'  => 'load_balancer',
+                'many' => 'load_balancers'
+        ];
     }
 }

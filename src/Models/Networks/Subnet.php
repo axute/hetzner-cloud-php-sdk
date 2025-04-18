@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace LKDev\HetznerCloud\Models\Networks;
 
@@ -10,64 +10,32 @@ use LKDev\HetznerCloud\Models\Model;
  */
 class Subnet extends Model
 {
-    const TYPE_SERVER = 'server';
-    const TYPE_CLOUD = 'cloud';
-    /**
-     * @var string
-     */
-    public $type;
-    /**
-     * @var string
-     */
-    public $ipRange;
-    /**
-     * @var string
-     */
-    public $networkZone;
-    /**
-     * @var string
-     */
-    public $gateway;
+    const string TYPE_SERVER = 'server';
+    const string TYPE_CLOUD = 'cloud';
 
-    /**
-     * Subnet constructor.
-     *
-     * @param  string  $type
-     * @param  string  $ipRange
-     * @param  string  $networkZone
-     * @param  string  $gateway
-     * @param  Client|null  $client
-     */
-    public function __construct(string $type, string $ipRange, string $networkZone, ?string $gateway = null, ?Client $client = null)
+    public function __construct(
+        public string  $type,
+        public string  $ipRange,
+        public string  $network_zone,
+        public ?string $gateway = null,
+        ?Client        $client = null)
     {
-        $this->type = $type;
-        $this->ipRange = $ipRange;
-        $this->networkZone = $networkZone;
-        $this->gateway = $gateway;
         parent::__construct($client);
     }
 
-    /**
-     * @param  $input
-     * @param  Client|null  $client
-     * @return array|Model
-     */
-    public static function parse($input, ?Client $client = null): null|static
+    public static function parse($input, ?Client $client = null): array
     {
         return collect($input)->map(function ($subnet) use ($client) {
             return new self($subnet->type, $subnet->ip_range, $subnet->network_zone, $subnet->gateway, $client);
         })->toArray();
     }
 
-    /**
-     * @return array
-     */
-    public function __toRequestPayload()
+    public function __toRequestPayload(): array
     {
         return [
-            'type' => $this->type,
-            'ip_range' => $this->ipRange,
-            'network_zone' => $this->networkZone,
+            'type'         => $this->type,
+            'ip_range'     => $this->ipRange,
+            'network_zone' => $this->network_zone,
         ];
     }
 }

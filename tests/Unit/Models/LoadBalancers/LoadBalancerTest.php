@@ -2,7 +2,9 @@
 
 namespace LKDev\Tests\Unit\Models\LoadBalancers;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancer;
 use LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancerHealthCheck;
 use LKDev\HetznerCloud\Models\LoadBalancers\LoadBalancerHealthCheckHttp;
@@ -15,11 +17,12 @@ use LKDev\Tests\TestCase;
  */
 class LoadBalancerTest extends TestCase
 {
-    /**
-     * @var LoadBalancer
-     */
-    protected $load_balancer;
+    protected LoadBalancer $load_balancer;
 
+    /**
+     * @throws GuzzleException
+     * @throws APIException
+     */
     public function setUp(): void
     {
         parent::setUp();
@@ -29,13 +32,13 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function testChangeName()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/loadBalancer.json')));
-        $this->assertEquals($this->load_balancer->id, 4711);
-        $this->assertEquals($this->load_balancer->name, 'my-resource');
+        $this->assertEquals(4711, $this->load_balancer->id);
+        $this->assertEquals('my-resource', $this->load_balancer->name);
 
         $this->load_balancer->update(['name' => 'my-resource']);
         $this->assertLastRequestEquals('PUT', '/load_balancers/4711');
@@ -43,7 +46,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testAddService()
     {
@@ -87,7 +91,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testAddTarget()
     {
@@ -118,7 +123,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testAttachLoadBalancer()
     {
@@ -141,7 +147,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeAlgorithm()
     {
@@ -158,7 +165,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeReverseDNS()
     {
@@ -174,7 +182,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeProtection()
     {
@@ -189,7 +198,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeLoadBalancerType()
     {
@@ -205,7 +215,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testDeleteService()
     {
@@ -221,7 +232,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testDetachFromNetwork()
     {
@@ -239,7 +251,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testDisablePublicInterface()
     {
@@ -254,7 +267,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testEnablePublicInterface()
     {
@@ -269,7 +283,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testRemoveTarget()
     {
@@ -298,7 +313,8 @@ class LoadBalancerTest extends TestCase
     }
 
     /**
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testUpdateService()
     {

@@ -44,6 +44,7 @@ class ApiResponseTest extends TestCase
         $this->assertFalse($apiResponse->getResponsePart('not_there'));
     }
 
+    /** @noinspection PhpUndefinedFieldInspection */
     public function testGetMagic()
     {
         $apiResponse = new APIResponse();

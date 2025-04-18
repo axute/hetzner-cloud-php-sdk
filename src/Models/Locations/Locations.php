@@ -9,6 +9,8 @@
 
 namespace LKDev\HetznerCloud\Models\Locations;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -21,20 +23,12 @@ class Locations extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    protected $locations;
+    protected array $locations;
 
     /**
      * Returns all location objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-locations-get
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -47,13 +41,8 @@ class Locations extends Model implements Resources
 
     /**
      * Returns all location objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-locations-get
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
@@ -75,17 +64,12 @@ class Locations extends Model implements Resources
 
     /**
      * Returns a specific location object.
-     *
      * @see https://docs.hetzner.cloud/#resources-locations-get-1
-     *
-     * @param  int  $locationId
-     * @return Location
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function getById(int $locationId): ?Location
+    public function getById(int $id): ?Location
     {
-        $response = $this->httpClient->get('locations/'.$locationId);
+        $response = $this->httpClient->get('locations/'.$id);
         if (! HetznerAPIClient::hasError($response)) {
             return Location::parse(json_decode((string) $response->getBody())->location);
         }
@@ -97,44 +81,30 @@ class Locations extends Model implements Resources
      * Returns a specific location object by its name.
      *
      * @see https://docs.hetzner.cloud/#resources-locations-get-1
-     *
-     * @param  int  $locationId
-     * @return Location
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?Location
     {
+        /** @var Locations $locations */
         $locations = $this->list(new LocationRequestOpts($name));
 
         return (count($locations->locations) > 0) ? $locations->locations[0] : null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
-        $this->locations = collect($input)->map(function ($location, $key) {
+        $this->locations = collect($input)->map(function ($location) {
             return Location::parse($location);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
         return ['one' => 'location', 'many' => 'locations'];

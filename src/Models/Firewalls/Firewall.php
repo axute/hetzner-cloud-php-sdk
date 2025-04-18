@@ -16,92 +16,43 @@ use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
 use LKDev\HetznerCloud\Models\Model;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
+/**
+ * @property FirewallRule[] $firewallRules
+ * @property FirewallResource[] $applied_to
+ */
 class Firewall extends Model implements Resource
 {
-    public int $id;
-
-    public string $name;
-
-    public string $created;
-
-    /**
-     * @var array
-     */
-    public array $labels;
-
-    /**
-     * @var FirewallRule[]
-     */
-    public array $rules;
-
-    /**
-     * @var FirewallResource[]
-     */
-    public array $applied_to;
-    /**
-     * @var FirewallResource[]
-     *
-     * @deprecated Use $applied_to instead
-     */
-    public array $appliedTo;
-
-
-    /**
-     * Firewall constructor.
-     *
-     * @param int $id
-     * @param string $name
-     * @param array $rules
-     * @param array $appliedTo
-     * @param array $labels
-     * @param string $created
-     */
     public function __construct(
-        int $id,
-        string $name = '',
-        array $rules = [],
-        array $appliedTo = [],
-        array $labels = [],
-        string $created = '',
-    ) {
-        $this->id = $id;
-        $this->labels = $labels;
-        $this->created = $created;
-        $this->name = $name;
-        $this->rules = $rules;
-        $this->applied_to = $appliedTo;
-        $this->appliedTo = $appliedTo;
+        public int    $id,
+        public string $name = '',
+        public array  $rules = [],
+        public array  $applied_to = [],
+        public array  $labels = [],
+        public string $created = '',
+    )
+    {
         parent::__construct();
     }
 
     /**
      * Update a Firewall.
-     *
      * @see https://docs.hetzner.cloud/#firewalls-update-a-firewall
-     *
-     * @param  array  $data
-     * @return static|null
-     *
      * @throws APIException|GuzzleException
      */
-    public function update(array $data): ?self
+    public function update(array $data): ?static
     {
-        $response = $this->httpClient->put('firewalls/'.$this->id, [
+        $response = $this->httpClient->put('firewalls/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            return self::parse(json_decode((string) $response->getBody())->firewall);
+        if (!HetznerAPIClient::hasError($response)) {
+            return self::parse(json_decode((string)$response->getBody())->firewall);
         }
 
         return null;
     }
 
-    /**
-     * @param  $input
-     * @return Firewall|static|null
-     */
     public static function parse($input): ?static
     {
         if ($input == null) {
@@ -111,39 +62,48 @@ class Firewall extends Model implements Resource
         $rules = [];
 
         foreach ($input->rules as $r) {
-            $rules[] = new FirewallRule($r->direction, $r->protocol, $r->source_ips, $r->destination_ips, (string) $r->port, $r->description);
+            $rules[] = new FirewallRule(
+                direction: $r->direction,
+                protocol: $r->protocol,
+                source_ips: $r->source_ips,
+                destination_ips: $r->destination_ips,
+                port: (string)$r->port,
+                description: $r->description);
         }
 
         foreach ($input->applied_to as $a) {
             if ($a->type === 'server') {
-                $appliedTo[] = new FirewallResource($a->type, new Server($a->server->id));
+                $appliedTo[] = new FirewallResource(
+                    type: $a->type,
+                    server: new ServerReference(id: $a->server->id));
             }
         }
 
-        return new self($input->id, $input->name, $rules, $appliedTo, get_object_vars($input->labels), $input->created);
+        return new self(id: $input->id,
+            name: $input->name,
+            rules: $rules,
+            applied_to: $appliedTo,
+            labels: get_object_vars($input->labels),
+            created: $input->created);
     }
 
     /**
      * Sets the rules of a Firewall.
-     *
      * @see https://docs.hetzner.cloud/#firewall-actions-set-rules
-     *
-     * @param  FirewallRule[]  $rules
-     * @return ?APIResponse|null
-     *
+     * @param FirewallRule[] $rules
      * @throws APIException|GuzzleException
      */
     public function setRules(array $rules): ?ApiResponse
     {
-        $response = $this->httpClient->post('firewalls/'.$this->id.'/actions/set_rules', [
+        $response = $this->httpClient->post('firewalls/' . $this->id . '/actions/set_rules', [
             'json' => [
                 'rules' => collect($rules)->map(function ($r) {
                     return $r->toRequestSchema();
                 }),
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
 
             return APIResponse::create([
                 'actions' => collect($payload->actions)->map(function ($action) {
@@ -157,17 +117,13 @@ class Firewall extends Model implements Resource
 
     /**
      * Deletes a Firewall.
-     *
      * @see https://docs.hetzner.cloud/#firewalls-delete-a-firewall
-     *
-     * @return bool
-     *
      * @throws APIException|GuzzleException
      */
-    public function delete(): bool
+    public function delete(): APIResponse|bool|null
     {
-        $response = $this->httpClient->delete('firewalls/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('firewalls/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return true;
         }
 
@@ -179,22 +135,22 @@ class Firewall extends Model implements Resource
      *
      * @see https://docs.hetzner.cloud/#firewall-actions-apply-to-resources
      *
-     * @param  FirewallResource[]  $resources
+     * @param FirewallResource[] $resources
      * @return APIResponse|null
      *
      * @throws APIException|GuzzleException
      */
     public function applyToResources(array $resources): ?APIResponse
     {
-        $response = $this->httpClient->post('firewalls/'.$this->id.'/actions/apply_to_resources', [
+        $response = $this->httpClient->post('firewalls/' . $this->id . '/actions/apply_to_resources', [
             'json' => [
                 'apply_to' => collect($resources)->map(function ($r) {
                     return $r->toRequestSchema();
                 }),
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
 
             return APIResponse::create([
                 'actions' => collect($payload->actions)->map(function ($action) {
@@ -208,25 +164,21 @@ class Firewall extends Model implements Resource
 
     /**
      * Removes one Firewall from multiple resources.
-     *
      * @see https://docs.hetzner.cloud/#firewall-actions-remove-from-resources
-     *
-     * @param  FirewallResource[]  $resources
-     * @return APIResponse|null
-     *
+     * @param FirewallResource[] $resources
      * @throws APIException|GuzzleException
      */
     public function removeFromResources(array $resources): ?APIResponse
     {
-        $response = $this->httpClient->post('firewalls/'.$this->id.'/actions/remove_from_resources', [
+        $response = $this->httpClient->post('firewalls/' . $this->id . '/actions/remove_from_resources', [
             'json' => [
                 'remove_from' => collect($resources)->map(function ($r) {
                     return $r->toRequestSchema();
                 }),
             ],
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string) $response->getBody());
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
 
             return APIResponse::create([
                 'actions' => collect($payload->actions)->map(function ($action) {
@@ -238,6 +190,9 @@ class Firewall extends Model implements Resource
         return null;
     }
 
+    /**
+     * @throws GuzzleException|APIException
+     */
     public function reload(): mixed
     {
         return HetznerAPIClient::$instance->firewalls()->get($this->id);

@@ -9,6 +9,8 @@
 
 namespace LKDev\HetznerCloud\Models\ISOs;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
@@ -21,20 +23,12 @@ class ISOs extends Model implements Resources
 {
     use GetFunctionTrait;
 
-    /**
-     * @var array
-     */
-    public $isos;
+    public array $isos;
 
     /**
      * Returns all iso objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-isos-get
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return array
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws GuzzleException|APIException
      */
     public function all(?RequestOpts $requestOpts = null): array
     {
@@ -47,25 +41,21 @@ class ISOs extends Model implements Resources
 
     /**
      * Returns all iso objects.
-     *
      * @see https://docs.hetzner.cloud/#resources-isos-get
      *
-     * @param  RequestOpts  $requestOpts
-     * @return APIResponse|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function list(?RequestOpts $requestOpts = null): ?APIResponse
     {
         if ($requestOpts == null) {
             $requestOpts = new RequestOpts();
         }
-        $response = $this->httpClient->get('isos'.$requestOpts->buildQuery());
-        if (! HetznerAPIClient::hasError($response)) {
-            $resp = json_decode((string) $response->getBody());
+        $response = $this->httpClient->get('isos' . $requestOpts->buildQuery());
+        if (!HetznerAPIClient::hasError($response)) {
+            $resp = json_decode((string)$response->getBody());
 
             return APIResponse::create([
-                'meta' => Meta::parse($resp->meta),
+                'meta'                    => Meta::parse($resp->meta),
                 $this->_getKeys()['many'] => self::parse($resp->{$this->_getKeys()['many']})->{$this->_getKeys()['many']},
             ], $response->getHeaders());
         }
@@ -77,17 +67,14 @@ class ISOs extends Model implements Resources
      * Returns a specific iso object.
      *
      * @see https://docs.hetzner.cloud/#resources-iso-get-1
-     *
-     * @param  int  $isoId
-     * @return ISO|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
+     * @throws GuzzleException
      */
-    public function getById(int $isoId): ?ISO
+    public function getById(int $id): ?ISO
     {
-        $response = $this->httpClient->get('isos/'.$isoId);
-        if (! HetznerAPIClient::hasError($response)) {
-            return ISO::parse(json_decode((string) $response->getBody())->iso);
+        $response = $this->httpClient->get('isos/' . $id);
+        if (!HetznerAPIClient::hasError($response)) {
+            return ISO::parse(json_decode((string)$response->getBody())->iso);
         }
 
         return null;
@@ -95,48 +82,35 @@ class ISOs extends Model implements Resources
 
     /**
      * Returns a specific iso object by its name.
-     *
      * @see https://docs.hetzner.cloud/#resources-iso-get-1
-     *
-     * @param  int  $isoId
-     * @return ISO
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function getByName(string $name): ?ISO
     {
+        /** @var ISOs $resp */
         $resp = $this->list(new ISORequestOpts($name));
 
         return (count($resp->isos) > 0) ? $resp->isos[0] : null;
     }
 
-    /**
-     * @param  $input
-     * @return $this
-     */
-    public function setAdditionalData($input)
+    public function setAdditionalData($input): static
     {
-        $this->isos = collect($input)->map(function ($iso, $key) {
+        $this->isos = collect($input)->map(function ($iso) {
             return ISO::parse($iso);
         })->toArray();
 
         return $this;
     }
 
-    /**
-     * @param  $input
-     * @return $this|static
-     */
-    public static function parse($input): null|static
+    public static function parse($input): static
     {
         return (new self())->setAdditionalData($input);
     }
 
-    /**
-     * @return array
-     */
     public function _getKeys(): array
     {
-        return ['one' => 'iso', 'many' => 'isos'];
+        return ['one'  => 'iso',
+                'many' => 'isos'
+        ];
     }
 }

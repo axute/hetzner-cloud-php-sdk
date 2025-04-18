@@ -6,52 +6,16 @@ use LKDev\HetznerCloud\Models\Model;
 
 class LoadBalancerServiceHttp extends Model
 {
-    /**
-     * @var array
-     */
-    public $certificates;
-
-    /**
-     * @var int
-     */
-    public $cookie_lifetime;
-
-    /**
-     * @var string
-     */
-    public $cookie_name;
-
-    /**
-     * @var bool
-     */
-    public $redirect_http;
-
-    /**
-     * @var bool
-     */
-    public $sticky_sessions;
-
-    /**
-     * @param  array  $certificates
-     * @param  int  $cookie_lifetime
-     * @param  string  $cookie_name
-     * @param  bool  $redirect_http
-     * @param  bool  $sticky_sessions
-     */
-    public function __construct(array $certificates, int $cookie_lifetime, string $cookie_name, bool $redirect_http, bool $sticky_sessions)
+    public function __construct(
+        public array  $certificates,
+        public int    $cookie_lifetime,
+        public string $cookie_name,
+        public bool   $redirect_http,
+        public bool   $sticky_sessions)
     {
-        $this->certificates = $certificates;
-        $this->cookie_lifetime = $cookie_lifetime;
-        $this->cookie_name = $cookie_name;
-        $this->redirect_http = $redirect_http;
-        $this->sticky_sessions = $sticky_sessions;
         parent::__construct();
     }
 
-    /**
-     * @param  $input
-     * @return LoadBalancerServiceHttp|null|static
-     */
     public static function parse($input): null|static
     {
         if ($input == null) {

@@ -9,31 +9,26 @@
 
 namespace LKDev\HetznerCloud\Models\Prices;
 
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\RequestOpts;
+use stdClass;
 
 /**
  * Class Prices.
  */
 class Prices extends Model
 {
-    /**
-     * @var \stdClass
-     */
-    public $prices;
+    public stdClass $prices;
 
     /**
      * Returns all pricing information.
-     *
      * @see https://docs.hetzner.cloud/#pricing-get-all-prices
-     *
-     * @param  RequestOpts  $requestOpts
-     * @return \stdClass|null
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
-    public function all(?RequestOpts $requestOpts = null): ?\stdClass
+    public function all(?RequestOpts $requestOpts = null): ?stdClass
     {
         if ($requestOpts == null) {
             $requestOpts = new RequestOpts();

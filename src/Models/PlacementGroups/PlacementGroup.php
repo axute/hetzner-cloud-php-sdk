@@ -3,111 +3,87 @@
 namespace LKDev\HetznerCloud\Models\PlacementGroups;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
-use LKDev\HetznerCloud\Models\Model;
-use LKDev\HetznerCloud\Models\Servers\Server;
+use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
 /**
- * Class PlacementGroup.
+ * @property ServerReference[] $servers
  */
-class PlacementGroup extends Model implements Resource
+class PlacementGroup extends PlacementGroupReference implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
 
-    /**
-     * @var array
-     */
-    public $labels;
-
-    /**
-     * @var string
-     */
-    public $name;
-
-    /**
-     * @var string
-     */
-    public $type;
-
-    /**
-     * @var array
-     */
-    public $servers;
-
-    /**
-     * @var string
-     */
-    public $created;
-
-    /**
-     * PlacementGroup constructor.
-     *
-     * @param  int  $id
-     * @param  Client|null  $httpClient
-     */
-    public function __construct(int $id, ?Client $httpClient = null)
+    public function __construct(
+        int            $id,
+        ?string        $name = null,
+        public ?string $type = null,
+        public array   $servers = [],
+        public array   $labels = [],
+        public ?string $created = null,
+        ?Client        $httpClient = null)
     {
-        $this->id = $id;
-        parent::__construct($httpClient);
+        parent::__construct(id: $id, name: $name, httpClient: $httpClient);
     }
 
-    /**
-     * @param  $data
-     * @return $this
-     */
-    private function setAdditionalData($data)
-    {
-        $this->name = $data->name;
-        $this->type = $data->type;
-        $this->servers = collect($data->servers)
-            ->map(function ($id) {
-                return new Server($id);
-            })->toArray();
-
-        $this->labels = get_object_vars($data->labels);
-        $this->created = $data->created;
-
-        return $this;
-    }
-
-    /**
-     * @param  $input
-     * @return static
-     */
     public static function parse($input): null|static
     {
-        return (new self($input->id))->setAdditionalData($input);
+        if($input === null) {
+            return null;
+        }
+        return new self(
+            id: $input->id,
+            name: $input->name,
+            type: $input->type,
+            servers: collect($input->servers)
+                ->map(function ($id) {
+                    return new ServerReference(id: $id);
+                })->toArray(),
+            labels: get_object_vars($input->labels),
+            created: $input->created,
+        );
     }
 
-    public function reload()
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->placementGroups()->get($this->id);
     }
 
-    public function delete()
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function delete(): ?APIResponse
     {
-        $response = $this->httpClient->delete('placement_groups/'.$this->id);
-        if (! HetznerAPIClient::hasError($response)) {
+        $response = $this->httpClient->delete('placement_groups/' . $this->id);
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'action' => Action::parse(json_decode((string) $response->getBody())->action),
+                'action' => Action::parse(json_decode((string)$response->getBody())->action),
             ], $response->getHeaders());
         }
+
+        return null;
     }
 
-    public function update(array $data)
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    public function update(array $data): ?APIResponse
     {
-        $response = $this->httpClient->put('placement_groups/'.$this->id, [
+        $response = $this->httpClient->put('placement_groups/' . $this->id, [
             'json' => $data,
         ]);
-        if (! HetznerAPIClient::hasError($response)) {
+        if (!HetznerAPIClient::hasError($response)) {
             return APIResponse::create([
-                'placement_group' => self::parse(json_decode((string) $response->getBody())->network),
+                'placement_group' => self::parse(json_decode((string)$response->getBody())->network),
             ], $response->getHeaders());
         }
 
