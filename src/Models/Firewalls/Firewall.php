@@ -106,7 +106,7 @@ class Firewall extends Model implements Resource
      * @param  $input
      * @return Firewall|static|null
      */
-    public static function parse($input): ?self
+    public static function parse($input): ?static
     {
         if ($input == null) {
             return null;
