@@ -11,9 +11,9 @@ class GuzzleClient
 
     /**
      * @param  HetznerAPIClient  $client
-     * @param  array  $additionalGuzzleConfig
+     * @param array $additionalGuzzleConfig
      */
-    public function __construct(HetznerAPIClient $client, $additionalGuzzleConfig = [])
+    public function __construct(HetznerAPIClient $client, array $additionalGuzzleConfig = [])
     {
         $guzzleConfig = array_merge([
             'base_uri' => $client->getBaseUrl(),

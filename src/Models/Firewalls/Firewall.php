@@ -9,6 +9,7 @@
 
 namespace LKDev\HetznerCloud\Models\Firewalls;
 
+use GuzzleHttp\Exception\GuzzleException;
 use LKDev\HetznerCloud\APIException;
 use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
@@ -19,51 +20,45 @@ use LKDev\HetznerCloud\Models\Servers\Server;
 
 class Firewall extends Model implements Resource
 {
-    /**
-     * @var int
-     */
-    public $id;
+    public int $id;
 
-    /**
-     * @var string
-     */
-    public $name;
+    public string $name;
 
-    /**
-     * @var string
-     */
-    public $created;
+    public string $created;
 
     /**
      * @var array
      */
-    public $labels;
+    public array $labels;
 
     /**
      * @var FirewallRule[]
      */
-    public $rules;
+    public array $rules;
 
     /**
      * @var FirewallResource[]
      */
-    public $applied_to;
+    public array $applied_to;
     /**
      * @var FirewallResource[]
      *
      * @deprecated Use $applied_to instead
      */
-    public $appliedTo;
+    public array $appliedTo;
+
+    public string $description;
 
     /**
      * Firewall constructor.
      *
-     * @param  int  $id
-     * @param  string  $name
-     * @param  array  $rules
-     * @param  array  $appliedTo
-     * @param  array  $labels
-     * @param  string  $created
+     * @param int $id
+     * @param string $name
+     * @param array $rules
+     * @param array $appliedTo
+     * @param array $labels
+     * @param string $created
+     * @param string $description
      */
     public function __construct(
         int $id,
@@ -71,16 +66,17 @@ class Firewall extends Model implements Resource
         array $rules = [],
         array $appliedTo = [],
         array $labels = [],
-        string $created = ''
+        string $created = '',
+        string $description = ''
     ) {
         $this->id = $id;
-        $this->name = $name;
         $this->labels = $labels;
         $this->created = $created;
         $this->name = $name;
         $this->rules = $rules;
         $this->applied_to = $appliedTo;
         $this->appliedTo = $appliedTo;
+        $this->description = $description;
         parent::__construct();
     }
 
@@ -92,7 +88,7 @@ class Firewall extends Model implements Resource
      * @param  array  $data
      * @return static|null
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function update(array $data): ?self
     {
@@ -108,7 +104,7 @@ class Firewall extends Model implements Resource
 
     /**
      * @param  $input
-     * @return \LKDev\HetznerCloud\Models\Firewalls\Firewall|static|null
+     * @return Firewall|static|null
      */
     public static function parse($input): ?self
     {
@@ -128,7 +124,7 @@ class Firewall extends Model implements Resource
             }
         }
 
-        return new self($input->id, $input->name, $rules, $appliedTo, get_object_vars($input->labels), $input->created);
+        return new self($input->id, $input->name, $rules, $appliedTo, get_object_vars($input->labels), $input->created, $input->description);
     }
 
     /**
@@ -139,7 +135,7 @@ class Firewall extends Model implements Resource
      * @param  FirewallRule[]  $rules
      * @return ?APIResponse|null
      *
-     * @throws APIException
+     * @throws APIException|GuzzleException
      */
     public function setRules(array $rules): ?ApiResponse
     {
@@ -170,7 +166,7 @@ class Firewall extends Model implements Resource
      *
      * @return bool
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function delete(): bool
     {
@@ -190,7 +186,7 @@ class Firewall extends Model implements Resource
      * @param  FirewallResource[]  $resources
      * @return APIResponse|null
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function applyToResources(array $resources): ?APIResponse
     {
@@ -222,7 +218,7 @@ class Firewall extends Model implements Resource
      * @param  FirewallResource[]  $resources
      * @return APIResponse|null
      *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException|GuzzleException
      */
     public function removeFromResources(array $resources): ?APIResponse
     {
@@ -246,10 +242,7 @@ class Firewall extends Model implements Resource
         return null;
     }
 
-    /**
-     * @return mixed
-     */
-    public function reload()
+    public function reload(): mixed
     {
         return HetznerAPIClient::$instance->firewalls()->get($this->id);
     }

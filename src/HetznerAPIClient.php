@@ -23,51 +23,22 @@ use LKDev\HetznerCloud\Models\SSHKeys\SSHKeys;
 use LKDev\HetznerCloud\Models\Volumes\Volumes;
 use Psr\Http\Message\ResponseInterface;
 
-/**
- * Class HetznerAPIClient.
- */
 class HetznerAPIClient
 {
-    /**
-     * Version of the API Client.
-     */
-    const VERSION = '2.8.0';
-
-    const MAX_ENTITIES_PER_PAGE = 50;
-
-    /**
-     * @var string
-     */
-    protected $apiToken;
-
-    /**
-     * @var string
-     */
-    protected $baseUrl;
-
-    /**
-     * @var string
-     */
-    protected $userAgent;
+    const string VERSION = '2.8.0';
+    const int MAX_ENTITIES_PER_PAGE = 50;
+    protected string $apiToken;
+    protected string $baseUrl;
+    protected string $userAgent;
 
     /**
      * The default instance of the HTTP client, for easily getting it in the child models.
-     *
-     * @var HetznerAPIClient
      */
-    public static $instance;
+    public static HetznerAPIClient $instance;
 
-    /**
-     * @var \LKDev\HetznerCloud\Clients\GuzzleClient
-     */
-    protected $httpClient;
+    protected GuzzleClient $httpClient;
 
-    /**
-     * @param  string  $apiToken
-     * @param  string  $baseUrl
-     * @param  string  $userAgent
-     */
-    public function __construct(string $apiToken, $baseUrl = 'https://api.hetzner.cloud/v1/', $userAgent = '')
+    public function __construct(string $apiToken, string $baseUrl = 'https://api.hetzner.cloud/v1/', string $userAgent = '')
     {
         $this->apiToken = $apiToken;
         $this->baseUrl = $baseUrl;
@@ -76,34 +47,21 @@ class HetznerAPIClient
         self::$instance = $this;
     }
 
-    /**
-     * @return string
-     */
     public function getUserAgent(): string
     {
         return $this->userAgent;
     }
 
-    /**
-     * @return string
-     */
     public function getApiToken(): string
     {
         return $this->apiToken;
     }
 
-    /**
-     * @return string
-     */
     public function getBaseUrl(): string
     {
         return $this->baseUrl;
     }
 
-    /**
-     * @param  string  $userAgent
-     * @return HetznerAPIClient
-     */
     public function setUserAgent(string $userAgent): self
     {
         $this->userAgent = $userAgent;
@@ -111,10 +69,6 @@ class HetznerAPIClient
         return $this;
     }
 
-    /**
-     * @param  string  $baseUrl
-     * @return HetznerAPIClient
-     */
     public function setBaseUrl(string $baseUrl): self
     {
         $this->baseUrl = $baseUrl;
@@ -122,18 +76,12 @@ class HetznerAPIClient
         return $this;
     }
 
-    /**
-     * @return Client
-     */
-    public function getHttpClient(): Client
+    public function getHttpClient(): GuzzleClient|Client
     {
         return $this->httpClient;
     }
 
-    /**
-     * @return Client
-     */
-    public function setHttpClient(Client $client): self
+    public function setHttpClient(GuzzleClient|Client $client): self
     {
         $this->httpClient = $client;
 
@@ -141,15 +89,13 @@ class HetznerAPIClient
     }
 
     /**
-     * @param  \Psr\Http\Message\ResponseInterface  $response
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
     public static function throwError(ResponseInterface $response)
     {
         $body = (string) $response->getBody();
         if (strlen($body) > 0) {
-            $error = \GuzzleHttp\json_decode($body);
+            $error = json_decode($body);
             throw new APIException(APIResponse::create([
                 'error' => $error->error,
             ]), $error->error->message);
@@ -160,177 +106,113 @@ class HetznerAPIClient
     }
 
     /**
-     * @param  \Psr\Http\Message\ResponseInterface  $response
-     * @return bool
-     *
-     * @throws \LKDev\HetznerCloud\APIException
+     * @throws APIException
      */
-    public static function hasError(ResponseInterface $response)
+    public static function hasError(ResponseInterface $response): bool
     {
         $responseDecoded = json_decode((string) $response->getBody());
         if (strlen((string) $response->getBody()) > 0) {
             if (property_exists($responseDecoded, 'error')) {
                 self::throwError($response);
-
-                return true;
             }
         } elseif ($response->getStatusCode() <= 200 && $response->getStatusCode() >= 300) {
             self::throwError($response);
-
-            return true;
         }
 
         return false;
     }
 
-    /**
-     * @return Actions
-     */
-    public function actions()
+    public function actions(): Actions
     {
         return new Actions($this->httpClient);
     }
 
-    /**
-     * @return Servers
-     */
-    public function servers()
+    public function servers(): Servers
     {
         return new Servers($this->httpClient);
     }
 
-    /**
-     * @return Volumes
-     */
-    public function volumes()
+    public function volumes(): Volumes
     {
         return new Volumes($this->httpClient);
     }
 
-    /**
-     * @return ServerTypes
-     */
-    public function serverTypes()
+    public function serverTypes(): ServerTypes
     {
         return new ServerTypes($this->httpClient);
     }
 
-    /**
-     * @return Datacenters
-     */
-    public function datacenters()
+    public function datacenters(): Datacenters
     {
         return new Datacenters($this->httpClient);
     }
 
-    /**
-     * @return Models\Locations\Locations
-     */
-    public function locations()
+    public function locations(): Models\Locations\Locations
     {
         return new Models\Locations\Locations($this->httpClient);
     }
 
-    /**
-     * @return Images
-     */
-    public function images()
+    public function images(): Images
     {
         return new Images($this->httpClient);
     }
 
-    /**
-     * @return SSHKeys
-     */
-    public function sshKeys()
+    public function sshKeys(): SSHKeys
     {
         return new SSHKeys($this->httpClient);
     }
 
-    /**
-     * @return Prices
-     */
-    public function prices()
+    public function prices(): Prices
     {
         return new Prices($this->httpClient);
     }
 
-    /**
-     * @return ISOs
-     */
-    public function isos()
+    public function isos(): ISOs
     {
         return new ISOs($this->httpClient);
     }
 
-    /**
-     * @return FloatingIps
-     */
-    public function floatingIps()
+    public function floatingIps(): FloatingIps
     {
         return new FloatingIps($this->httpClient);
     }
 
-    /**
-     * @return PrimaryIps
-     */
-    public function primaryIps()
+    public function primaryIps(): PrimaryIps
     {
         return new PrimaryIps($this->httpClient);
     }
 
-    /**
-     * @return Networks
-     */
-    public function networks()
+    public function networks(): Networks
     {
         return new Networks($this->httpClient);
     }
 
-    /**
-     * @return PlacementGroups
-     */
-    public function placementGroups()
+    public function placementGroups(): PlacementGroups
     {
         return new PlacementGroups($this->httpClient);
     }
 
-    /**
-     * @return Certificates
-     */
-    public function certificates()
+    public function certificates(): Certificates
     {
         return new Certificates($this->httpClient);
     }
 
-    /**
-     * @return Firewalls
-     */
-    public function firewalls()
+    public function firewalls(): Firewalls
     {
         return new Firewalls($this->httpClient);
     }
 
-    /**
-     * @return LoadBalancers
-     */
-    public function loadBalancers()
+    public function loadBalancers(): LoadBalancers
     {
         return new LoadBalancers($this->httpClient);
     }
 
-    /**
-     * @return LoadBalancerTypes
-     */
-    public function loadBalancerTypes()
+    public function loadBalancerTypes(): LoadBalancerTypes
     {
         return new LoadBalancerTypes($this->httpClient);
     }
 
-    /**
-     * @return GuzzleClient
-     */
-    public function httpClient()
+    public function httpClient(): GuzzleClient
     {
         return $this->httpClient;
     }
