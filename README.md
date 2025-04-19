@@ -1,9 +1,9 @@
 [![Latest Stable Version](https://poser.pugx.org/lkdevelopment/hetzner-cloud-php-sdk/version)](https://packagist.org/packages/lkdevelopment/hetzner-cloud-php-sdk)
-[![License](https://poser.pugx.org/lkdevelopment/hetzner-cloud-php-sdk/license)](https://packagist.org/packages/lkdevelopment/hetzner-cloud-php-sdk)
+[![License](https://poser.pugx.org/axute/hetzner-cloud-php-sdk/license)](https://packagist.org/packages/axute/hetzner-cloud-php-sdk)
 [![Total Downloads](https://poser.pugx.org/lkdevelopment/hetzner-cloud-php-sdk/downloads)](https://packagist.org/packages/lkdevelopment/hetzner-cloud-php-sdk)
-[![Actions Status](https://github.com/lkdevelopment/hetzner-cloud-php-sdk/workflows/CI/badge.svg)](https://github.com/lkdevelopment/hetzner-cloud-php-sdk/actions)
+[![Actions Status](https://github.com/axute/hetzner-cloud-php-sdk/workflows/CI/badge.svg)](https://github.com/axute/hetzner-cloud-php-sdk/actions)
 # Hetzner Cloud PHP SDK
-A PHP SDK for the Hetzner Cloud API: https://docs.hetzner.cloud/
+A PHP (8.3+) SDK for the Hetzner Cloud API: https://docs.hetzner.cloud/
 ## Installation
 
 You can install the package via composer:
@@ -43,7 +43,7 @@ If you discover any security related issues, please email kontakt@lukas-kaemmerl
 ## Credits
 
 - [Lukas Kämmerling](https://github.com/lkaemmerling)
-- [All Contributors](../../contributors)
+- [All Contributors](https://github.com/LKDevelopment/hetzner-cloud-php-sdk/contributors)
 
 ## License
 

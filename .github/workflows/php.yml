@@ -20,3 +20,5 @@ jobs:
          composer install
     - name: Run phpunit
       run: php vendor/bin/phpunit
+    - name: Run phpstan
+      run: php -d memory_limit=256M vendor/bin/phpstan
