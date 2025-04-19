@@ -15,15 +15,9 @@ use LKDev\HetznerCloud\HetznerAPIClient;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var HetznerAPIClient
-     */
-    protected $hetznerApi;
+    protected HetznerAPIClient $hetznerApi;
 
-    /**
-     * @var MockHandler
-     */
-    protected $mockHandler;
+    protected MockHandler $mockHandler;
 
     public function setUp(): void
     {
@@ -38,13 +32,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         parent::tearDown();
     }
 
-    public function assertLastRequestEquals($method, $urlFragment)
+    public function assertLastRequestEquals($method, $urlFragment): void
     {
         $this->assertEquals($this->mockHandler->getLastRequest()->getMethod(), $method);
         $this->assertEquals('/'.$this->mockHandler->getLastRequest()->getUri()->getPath(), $urlFragment);
     }
 
-    public function assertLastRequestBodyParametersEqual(array $parameters)
+    public function assertLastRequestBodyParametersEqual(array $parameters): void
     {
         $body = (string) $this->mockHandler->getLastRequest()->getBody();
         $bodyParameters = json_decode($body, true);
@@ -57,13 +51,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function assertLastRequestBodyIsEmpty()
+    public function assertLastRequestBodyIsEmpty(): void
     {
         $body = (string) $this->mockHandler->getLastRequest()->getBody();
         $this->assertEmpty($body);
     }
 
-    public function assertLastRequestQueryParametersContains(string $key, string $value)
+    public function assertLastRequestQueryParametersContains(string $key, string $value): void
     {
         $query = $this->mockHandler->getLastRequest()->getUri()->getQuery();
         $this->assertStringContainsString(implode('=', [urlencode($key), urlencode($value)]), $query);

@@ -22,11 +22,12 @@ use LKDev\Tests\TestCase;
  */
 class FloatingIpTest extends TestCase
 {
-    /**
-     * @var FloatingIp
-     */
-    protected $floatingIp;
+    protected FloatingIp $floatingIp;
 
+    /**
+     * @throws APIException
+     * @throws GuzzleException
+     */
     public function setUp(): void
     {
         parent::setUp();
@@ -37,11 +38,13 @@ class FloatingIpTest extends TestCase
 
     /**
      * @throws APIException
+     * @throws GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeProtection()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP_action_change_protection.json')));
-        $apiResponse = $this->floatingIp->changeProtection(true);
+        $apiResponse = $this->floatingIp->changeProtection();
         $this->assertEquals('change_protection', $apiResponse->action->command);
         $this->assertEquals($this->floatingIp->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('floating_ip', $apiResponse->action->resources[0]->type);
@@ -51,6 +54,7 @@ class FloatingIpTest extends TestCase
 
     /**
      * @throws APIException
+     * @throws GuzzleException
      */
     public function testDelete()
     {
@@ -123,12 +127,12 @@ class FloatingIpTest extends TestCase
 
     /**
      * @throws APIException|GuzzleException
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     public function testChangeReverseDNSSetToDefault()
     {
         $this->mockHandler->append(new Response(200, [], file_get_contents(__DIR__.'/fixtures/floatingIP_action_change_dns_ptr.json')));
         $apiResponse = $this->floatingIp->changeReverseDNS('1.2.3.4');
-        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         $this->assertEquals('change_dns_ptr', $apiResponse->action->command);
         $this->assertEquals($this->floatingIp->id, $apiResponse->action->resources[0]->id);
         $this->assertEquals('floating_ip', $apiResponse->action->resources[0]->type);

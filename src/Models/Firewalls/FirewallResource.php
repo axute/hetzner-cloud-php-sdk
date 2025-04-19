@@ -2,7 +2,6 @@
 
 namespace LKDev\HetznerCloud\Models\Firewalls;
 
-use LKDev\HetznerCloud\Models\Servers\Server;
 use LKDev\HetznerCloud\Models\Servers\ServerReference;
 
 /**

@@ -145,33 +145,7 @@ class Servers extends Model
             'networks'           => $networks,
             'public_net'         => $public_net,
         ];
-        if (!empty($labels)) {
-            $parameters['labels'] = $labels;
-        }
-        if (!empty($firewalls)) {
-            $parameters['firewalls'] = $firewalls;
-        }
-        if ($placement_group != null) {
-            $parameters['placement_group'] = $placement_group;
-        }
-        $response = $this->httpClient->post('servers', [
-            'json' => $parameters,
-        ]);
-
-        if (!HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string)$response->getBody());
-
-            return APIResponse::create(array_merge([
-                'action'       => Action::parse($payload->action),
-                'server'       => Server::parse($payload->server),
-                'next_actions' => collect($payload->next_actions)->map(function ($action) {
-                    return Action::parse($action);
-                })->toArray(),
-            ], (property_exists($payload, 'root_password')) ? ['root_password' => $payload->root_password] : []
-            ), $response->getHeaders());
-        }
-
-        return null;
+        return $this->createIn($labels, $parameters, $firewalls, $placement_group);
     }
 
     /**
@@ -208,32 +182,7 @@ class Servers extends Model
             'networks'           => $networks,
             'public_net'         => $public_net,
         ];
-        if (!empty($labels)) {
-            $parameters['labels'] = $labels;
-        }
-        if (!empty($firewalls)) {
-            $parameters['firewalls'] = $firewalls;
-        }
-        if ($placement_group != null) {
-            $parameters['placement_group'] = $placement_group;
-        }
-        $response = $this->httpClient->post('servers', [
-            'json' => $parameters,
-        ]);
-        if (!HetznerAPIClient::hasError($response)) {
-            $payload = json_decode((string)$response->getBody());
-
-            return APIResponse::create(array_merge([
-                'action'       => Action::parse($payload->action),
-                'server'       => Server::parse($payload->server),
-                'next_actions' => collect($payload->next_actions)->map(function ($action) {
-                    return Action::parse($action);
-                })->toArray(),
-            ], (property_exists($payload, 'root_password')) ? ['root_password' => $payload->root_password] : []
-            ), $response->getHeaders());
-        }
-
-        return null;
+        return $this->createIn($labels, $parameters, $firewalls, $placement_group);
     }
 
     public function setAdditionalData($input): static
@@ -262,5 +211,44 @@ class Servers extends Model
             'one'  => 'server',
             'many' => 'servers'
         ];
+    }
+
+    /**
+     * @param array $labels
+     * @param array $parameters
+     * @param array $firewalls
+     * @param int|null $placement_group
+     * @return APIResponse|null
+     * @throws APIException
+     * @throws GuzzleException
+     */
+    protected function createIn(array $labels, array $parameters, array $firewalls, ?int $placement_group): ?APIResponse
+    {
+        if (!empty($labels)) {
+            $parameters['labels'] = $labels;
+        }
+        if (!empty($firewalls)) {
+            $parameters['firewalls'] = $firewalls;
+        }
+        if ($placement_group != null) {
+            $parameters['placement_group'] = $placement_group;
+        }
+        $response = $this->httpClient->post('servers', [
+            'json' => $parameters,
+        ]);
+        if (!HetznerAPIClient::hasError($response)) {
+            $payload = json_decode((string)$response->getBody());
+
+            return APIResponse::create(array_merge([
+                'action'       => Action::parse($payload->action),
+                'server'       => Server::parse($payload->server),
+                'next_actions' => collect($payload->next_actions)->map(function ($action) {
+                    return Action::parse($action);
+                })->toArray(),
+            ], (property_exists($payload, 'root_password')) ? ['root_password' => $payload->root_password] : []
+            ), $response->getHeaders());
+        }
+
+        return null;
     }
 }

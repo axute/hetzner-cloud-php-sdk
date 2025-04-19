@@ -9,7 +9,6 @@ use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resource;
-use LKDev\HetznerCloud\Models\Model;
 use LKDev\HetznerCloud\Models\Protection;
 use LKDev\HetznerCloud\Models\Servers\Server;
 use LKDev\HetznerCloud\Models\Servers\ServerReference;

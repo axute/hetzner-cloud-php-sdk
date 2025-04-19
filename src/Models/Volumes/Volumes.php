@@ -16,7 +16,6 @@ use LKDev\HetznerCloud\APIResponse;
 use LKDev\HetznerCloud\HetznerAPIClient;
 use LKDev\HetznerCloud\Models\Actions\Action;
 use LKDev\HetznerCloud\Models\Contracts\Resources;
-use LKDev\HetznerCloud\Models\Locations\Location;
 use LKDev\HetznerCloud\Models\Locations\LocationReference;
 use LKDev\HetznerCloud\Models\Meta;
 use LKDev\HetznerCloud\Models\Model;
