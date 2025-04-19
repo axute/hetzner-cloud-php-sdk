@@ -77,7 +77,7 @@ class Volume extends VolumeReference implements Resource
      * @throws GuzzleException
      * @see https://docs.hetzner.cloud/#volume-actions-attach-volume-to-a-server
      */
-    public function attach(ServerReference $server, bool $automount = null): ?APIResponse
+    public function attach(ServerReference $server, ?bool $automount = null): ?APIResponse
     {
         $payload = [
             'server' => $server->id,
